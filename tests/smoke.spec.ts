@@ -1,15 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { loginWithPersistentTestUser } from '../test-elements/flows/auth.flow';
 import { EditView } from '../test-elements/views/edit.view';
 import { LeftPanel } from '../test-elements/views/left-panel.view';
 import { ReadView } from '../test-elements/views/read.view';
 
 test.beforeEach(async ({ page }) => {
-  await loginWithPersistentTestUser(page);
+  await page.goto('/');
 });
 
 test('create, read, and delete a note', async ({ page }) => {
-  const timestamp = Date.now();
+  const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const noteTitleText = `Created by Playwright ${timestamp}`;
   const noteBodyText = `Text body ${timestamp}`;
 

@@ -30,7 +30,13 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Reuse signed-in state */
+    storageState: path.resolve(__dirname, 'playwright', '.auth', 'user.json'),
   },
+
+  /* Create storageState before running tests */
+  globalSetup: require.resolve('./test-utils/global-setup'),
 
   /* Configure projects for major browsers */
   projects: [
