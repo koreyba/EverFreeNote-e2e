@@ -4,12 +4,14 @@ import { EditView } from '../test-elements/views/edit.view';
 import { LeftPanel } from '../test-elements/views/left-panel.view';
 import { ReadView } from '../test-elements/views/read.view';
 
+test.beforeEach(async ({ page }) => {
+  await loginWithPersistentTestUser(page);
+});
+
 test('create, read, and delete a note', async ({ page }) => {
   const timestamp = Date.now();
   const noteTitleText = `Created by Playwright ${timestamp}`;
   const noteBodyText = `Text body ${timestamp}`;
-
-  await loginWithPersistentTestUser(page);
 
   const leftPanel = new LeftPanel(page);
   const editView = new EditView(page);
@@ -31,16 +33,24 @@ test('create, read, and delete a note', async ({ page }) => {
   await expect(noteCard.titleHeading).toHaveText(noteTitleText);
   await expect(noteCard.bodyParagraph).toHaveText(noteBodyText);
 
+  const date = getFormattedDate();
+
+  await expect(noteCard.dateParagraph).toHaveText(date);
+
+  await readView.deleteButton.click();
+  await expect(readView.deleteDialog.dialog).toBeVisible();
+  await readView.deleteDialog.confirmButton.click();
+  await expect(readView.emptyStateText).toBeVisible();
+
+  const deletedNote = leftPanel.getNoteCardByTitle(noteTitleText);
+  await expect(deletedNote.root, 'Deleted note was found when not expected').toHaveCount(0);
+});
+
+function getFormattedDate () {
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yyyy = String(now.getFullYear());
   const formatted = `${dd}.${mm}.${yyyy}`;
-
-
-  await expect(noteCard.dateParagraph).toHaveText(formatted);
-
-  await readView.deleteButton.click();
-  await readView.deleteButton.click();
-  await expect(readView.emptyStateText).toBeVisible();
-});
+  return formatted;
+}
