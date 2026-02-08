@@ -23,13 +23,16 @@ test('create, read, and delete a note', async ({ page }) => {
   await editView.noteContentArea.click();
   await editView.tiptapEditor.fill(noteBodyText);
   await editView.saveButton.click();
+
   await expect(editView.readButton).toBeEnabled();
+
   await editView.readButton.click();
 
   await expect(readView.readingHeading).toBeVisible();
   await expect(readView.noteText).toContainText(noteBodyText);
 
   const noteCard = leftPanel.getNoteCardNumber(0);
+
   await expect(noteCard.titleHeading).toHaveText(noteTitleText);
   await expect(noteCard.bodyParagraph).toHaveText(noteBodyText);
 
@@ -39,6 +42,7 @@ test('create, read, and delete a note', async ({ page }) => {
 
   await readView.deleteButton.click();
   await expect(readView.deleteDialog.dialog).toBeVisible();
+  
   await readView.deleteDialog.confirmButton.click();
   await expect(readView.emptyStateText).toBeVisible();
 
