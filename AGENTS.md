@@ -8,6 +8,7 @@ Rules regarding Page Objects:
 2. Page Objects (Views/Subviews) should be created as a Class type.
 3. Prefer `getByRole`, `getByLabel`, and `getByTestId` locators. Use CSS locators only when needed.
 4. Keep selectors stable: prefer `data-testid` for UI lists/cards/dialogs.
+5. Each View/Subview must have a short JSDoc description above the class.
 
 Rules regarding tests:
 1. Never hide main test's verifications from the test body (don't extract them to functions).
