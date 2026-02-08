@@ -1,6 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
-import { NoteCard } from '../components/note.component';
+import { NoteCard } from '../subviews/note-card.subview';
 
+/**
+ * Left panel containing navigation buttons and the notes list.
+ */
 export class LeftPanel {
   private readonly page: Page;
   readonly newNoteButton: Locator;

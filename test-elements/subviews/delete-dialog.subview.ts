@@ -1,5 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
+/**
+ * Confirmation dialog shown when deleting a note.
+ */
 export class DeleteDialog {
   readonly dialog: Locator;
   readonly titleHeading: Locator;

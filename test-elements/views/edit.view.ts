@@ -1,5 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
+/**
+ * Right panel in Editing mode (after clicking "New Note").
+ */
 export class EditView {
   readonly noteTitleInput: Locator;
   readonly noteContentArea: Locator;

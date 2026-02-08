@@ -1,10 +1,13 @@
 import type { Locator } from '@playwright/test';
 
+/**
+ * Single note card in the left notes list.
+ */
 export class NoteCard {
+  readonly root: Locator;
   readonly titleHeading: Locator;
   readonly bodyParagraph: Locator;
   readonly dateParagraph: Locator;
-  readonly root: Locator;
 
   constructor(root: Locator) {
     this.root = root;

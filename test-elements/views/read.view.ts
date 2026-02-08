@@ -1,6 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
-import { DeleteDialog } from '../components/delete-dialog.component';
+import { DeleteDialog } from '../subviews/delete-dialog.subview';
 
+/**
+ * Right panel in Reading mode (after clicking "Read").
+ */
 export class ReadView {
   readonly noteText: Locator;
   readonly deleteButton: Locator;

@@ -1,5 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
+/**
+ * Login screen with test/quick auth entry points.
+ */
 export class LandingView {
   readonly testLoginButton: Locator;
   readonly quickTestButton: Locator;
