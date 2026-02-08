@@ -3,6 +3,7 @@ import { EditView } from '../test-elements/views/edit.view';
 import { LeftPanel } from '../test-elements/views/left-panel.view';
 import { ReadView } from '../test-elements/views/read.view';
 
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
@@ -11,7 +12,7 @@ test('create, read, and delete a note', async ({ page }) => {
   const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const noteTitleText = `Created by Playwright ${timestamp}`;
   const noteBodyText = `Text body ${timestamp}`;
-
+ 
   const leftPanel = new LeftPanel(page);
   const editView = new EditView(page);
   const readView = new ReadView(page);
@@ -21,7 +22,11 @@ test('create, read, and delete a note', async ({ page }) => {
   await editView.noteTitleInput.fill(noteTitleText);
   await editView.noteContentArea.click();
   await editView.tiptapEditor.fill(noteBodyText);
+
+  await expect(editView.tiptapEditor).toContainText(noteBodyText);
+
   await editView.saveButton.click();
+  
 
   await expect(editView.readButton).toBeEnabled();
 
