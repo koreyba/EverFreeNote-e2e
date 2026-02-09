@@ -142,7 +142,7 @@ test.describe('notes export/import', () => {
         const fetched = await notesApi.getNotes({ title: expectedNote.title });
         expect(fetched.status).toBe(200);
 
-        const notes = 'notes' in fetched.data ? fetched.data.notes : [fetched.data.note];
+        const notes = fetched.data.notes;
         const matchedNote = notes.find((note) => areNotesEquivalent(note, expectedNote));
 
         expect(matchedNote, `Imported note "${expectedNote.title}" did not match expected data.`).toBeDefined();

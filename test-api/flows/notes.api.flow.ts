@@ -9,6 +9,12 @@ type CreateNotesViaApiOptions = {
   tagPrefix?: string;
 };
 
+/**
+ * Creates a batch of unique notes via API for test setup.
+ * @param notesApi Typed Notes API client.
+ * @param options Batch generation options such as count and prefixes.
+ * @returns Created notes returned by the API.
+ */
 export const createNotesViaApi = async (
   notesApi: NotesApi,
   options: CreateNotesViaApiOptions,
@@ -38,6 +44,12 @@ export const createNotesViaApi = async (
   return notes;
 };
 
+/**
+ * Finds notes by exact title and deletes all matching records.
+ * @param notesApi Typed Notes API client.
+ * @param title Exact note title to search and delete.
+ * @returns IDs of notes successfully deleted.
+ */
 export const deleteNotesWithGivenTitleIfFound = async (
   notesApi: NotesApi,
   title: string,
@@ -48,7 +60,7 @@ export const deleteNotesWithGivenTitleIfFound = async (
     return [];
   }
 
-  const notes = 'notes' in fetched.data ? fetched.data.notes : [fetched.data.note];
+  const notes = fetched.data.notes;
   const matchingNotes = notes.filter((note) => note.title === title);
   const deletedNoteIds: string[] = [];
 

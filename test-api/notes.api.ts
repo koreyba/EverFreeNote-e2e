@@ -1,4 +1,4 @@
-import type { APIRequestContext } from '@playwright/test';
+﻿import type { APIRequestContext } from '@playwright/test';
 import type { CreateNotePayload, GetNotesQuery, Note } from './notes.types';
 
 /**
@@ -24,19 +24,28 @@ export type ApiResponse<T> = {
 export class NotesApi {
   constructor(private readonly api: APIRequestContext) {}
 
-  /** POST `create-note` — creates a new note. */
+  /** POST `create-note` - creates a new note. */
   async createNote(payload: CreateNotePayload = {}) {
     const res = await this.api.post('create-note', { data: payload });
     return this.parse<{ note: Note }>(res);
   }
 
-  /** GET `get-notes` — fetches one or many notes by query params. */
-  async getNotes(query: GetNotesQuery = {}) {
+  /**
+   * GET `get-notes` - fetches notes by query params.
+   * Always returns normalized payload shape: `{ notes: Note[] }`.
+   */
+  async getNotes(query: GetNotesQuery = {}): Promise<ApiResponse<{ notes: Note[] }>> {
     const res = await this.api.get('get-notes', { params: query });
-    return this.parse<{ note: Note } | { notes: Note[] }>(res);
+    const parsed = await this.parse<{ note: Note } | { notes: Note[] }>(res);
+    const notes = 'notes' in parsed.data ? parsed.data.notes : [parsed.data.note];
+
+    return {
+      status: parsed.status,
+      data: { notes },
+    };
   }
 
-  /** POST `delete-note` — deletes a note by id. */
+  /** POST `delete-note` - deletes a note by id. */
   async deleteNote(id: string) {
     const res = await this.api.post('delete-note', { data: { id } });
     return this.parse<{ id: string }>(res);
