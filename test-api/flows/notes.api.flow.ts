@@ -1,4 +1,5 @@
 import type { NotesApi } from '../notes.api';
+import type { Note } from '../notes.types';
 
 type CreateNotesViaApiOptions = {
   count: number;
@@ -8,28 +9,13 @@ type CreateNotesViaApiOptions = {
   tagPrefix?: string;
 };
 
-export type CreatedNoteData = {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-};
-
-type CreatedNotesResult = {
-  ids: string[];
-  titles: string[];
-  notes: CreatedNoteData[];
-};
-
 export const createNotesViaApi = async (
   notesApi: NotesApi,
   options: CreateNotesViaApiOptions,
-): Promise<CreatedNotesResult> => {
+): Promise<Note[]> => {
   const { count, titlePrefix, bodyPrefix, tagsPerNote = 0, tagPrefix = 'tag' } = options;
   const runId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-  const ids: string[] = [];
-  const titles: string[] = [];
-  const notes: CreatedNoteData[] = [];
+  const notes: Note[] = [];
 
   for (let index = 1; index <= count; index += 1) {
     const title = `${titlePrefix} ${runId}-${index}`;
@@ -46,15 +32,8 @@ export const createNotesViaApi = async (
       throw new Error(`Failed to create note. Expected 200, got ${created.status}.`);
     }
 
-    ids.push(created.data.note.id);
-    titles.push(title);
-    notes.push({
-      id: created.data.note.id,
-      title,
-      description,
-      tags,
-    });
+    notes.push(created.data.note);
   }
 
-  return { ids, titles, notes };
+  return notes;
 };

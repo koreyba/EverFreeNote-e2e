@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { expect, test } from '../test-elements/fixtures/api.fixture';
 import type { Note } from '../test-api/notes.types';
-import { createNotesViaApi, type CreatedNoteData } from '../test-api/flows/notes.api.flow';
+import { createNotesViaApi } from '../test-api/flows/notes.api.flow';
 import { ExportCompletedDialog } from '../test-elements/views/dialogs/export-completed-dialog.view';
 import { ExportNotesDialog } from '../test-elements/views/dialogs/export-notes-dialog.view';
 import { ImportCompletedDialog } from '../test-elements/views/dialogs/import-completed-dialog.view';
@@ -12,7 +12,8 @@ const NOTES_TO_CREATE = 3;
 
 let createdNoteIds: string[] = [];
 let createdNoteTitles: string[] = [];
-let expectedCreatedNotes: CreatedNoteData[] = [];
+type ExpectedNoteData = Pick<Note, 'title' | 'description' | 'tags'>;
+let expectedCreatedNotes: ExpectedNoteData[] = [];
 
 test.beforeEach(async ({ notesApi, page }) => {
   // Seed a deterministic batch of notes via API for export/import validation.
@@ -23,9 +24,13 @@ test.beforeEach(async ({ notesApi, page }) => {
     tagsPerNote: 2,
     tagPrefix: 'export-tag',
   });
-  createdNoteIds = createdNotes.ids;
-  createdNoteTitles = createdNotes.titles;
-  expectedCreatedNotes = createdNotes.notes;
+  createdNoteIds = createdNotes.map((note) => note.id);
+  createdNoteTitles = createdNotes.map((note) => note.title);
+  expectedCreatedNotes = createdNotes.map((note) => ({
+    title: note.title,
+    description: note.description,
+    tags: note.tags,
+  }));
 
   await page.goto('/');
 });
@@ -152,7 +157,7 @@ test('export and import selected notes from enex file', async ({ page, notesApi 
   }
 });
 
-const areNotesEquivalent = (actual: Note, expected: CreatedNoteData) => {
+const areNotesEquivalent = (actual: Note, expected: ExpectedNoteData) => {
   const actualSortedTags = [...actual.tags].sort();
   const expectedSortedTags = [...expected.tags].sort();
 

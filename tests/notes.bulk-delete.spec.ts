@@ -16,8 +16,8 @@ test.beforeEach(async ({ notesApi, page }) => {
     titlePrefix: 'Bulk delete note',
     bodyPrefix: 'Bulk delete body',
   });
-  createdNoteIds = createdNotes.ids;
-  createdNoteTitles = createdNotes.titles;
+  createdNoteIds = createdNotes.map((note) => note.id);
+  createdNoteTitles = createdNotes.map((note) => note.title);
 
   await page.goto('/');
 });
