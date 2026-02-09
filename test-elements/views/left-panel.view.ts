@@ -31,9 +31,7 @@ export class LeftPanel {
 
   getNoteCardByTitle(title: string) {
     return new NoteCard(
-      this.noteCards
-        .filter({ has: this.page.getByRole('heading', { name: title }) })
-        .first(),
+      this.noteCards.filter({ has: this.page.getByRole('heading', { name: title }) }).first(),
     );
   }
 }

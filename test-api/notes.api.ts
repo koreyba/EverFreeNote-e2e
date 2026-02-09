@@ -48,7 +48,9 @@ export class NotesApi {
   }
 
   /** Parses the raw Playwright response into `{ status, data }`. */
-  private async parse<T>(res: Awaited<ReturnType<APIRequestContext['get']>>): Promise<ApiResponse<T>> {
+  private async parse<T>(
+    res: Awaited<ReturnType<APIRequestContext['get']>>,
+  ): Promise<ApiResponse<T>> {
     return {
       status: res.status(),
       data: (await res.json()) as T,

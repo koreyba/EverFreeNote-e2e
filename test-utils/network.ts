@@ -110,12 +110,7 @@ const computeTransferMs = (sizeKb: number, speedKbps?: number) => {
  * Build a Playwright route handler that applies latency and up/down throttling.
  */
 const buildHandler = (options: NetworkThrottleOptions) => {
-  const {
-    latencyMs = 0,
-    downloadKbps,
-    uploadKbps,
-    resourceTypes,
-  } = options;
+  const { latencyMs = 0, downloadKbps, uploadKbps, resourceTypes } = options;
 
   return async (route: Route) => {
     if (!shouldThrottle(route, resourceTypes)) {
@@ -153,9 +148,8 @@ const buildHandler = (options: NetworkThrottleOptions) => {
  * It installs a route handler and delays requests according to options.
  */
 export const createNetworkThrottle = (page: Page): ThrottleHandle => {
-  let current:
-    | { urlPattern: string | RegExp; handler: (route: Route) => Promise<void> }
-    | null = null;
+  let current: { urlPattern: string | RegExp; handler: (route: Route) => Promise<void> } | null =
+    null;
   let stopping = false;
   const inFlight = new Set<Promise<void>>();
 
@@ -171,9 +165,7 @@ export const createNetworkThrottle = (page: Page): ThrottleHandle => {
   return {
     start: async (options: NetworkThrottleOptions = {}) => {
       const resolved = resolveOptions(options);
-      const {
-        urlPattern = '**/*',
-      } = resolved;
+      const { urlPattern = '**/*' } = resolved;
 
       if (current) {
         await page.unroute(current.urlPattern, current.handler);
