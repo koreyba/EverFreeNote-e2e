@@ -19,3 +19,7 @@ Rules regarding tests:
 2. Analyze if a test has a pre-setup; if so, extract it to `test.beforeEach`/`test.beforeAll`.
 3. If a test creates data, ensure there is a corresponding cleanup in `test.afterEach`/`test.afterAll`.
 4. Test data should be unique (timestamp/uuid) to avoid collisions in shared environments.
+
+Rules regarding types:
+
+1. Prefer reusing existing domain/API types as the single source of truth; introduce new types only when they model truly new behavior or a distinct contract, not as convenience wrappers over the same data shape.
