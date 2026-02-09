@@ -1,0 +1,165 @@
+import { existsSync } from 'node:fs';
+import { expect, test } from '../test-elements/fixtures/api.fixture';
+import type { Note } from '../test-api/notes.types';
+import { createNotesViaApi, type CreatedNoteData } from '../test-api/flows/notes.api.flow';
+import { ExportCompletedDialog } from '../test-elements/views/dialogs/export-completed-dialog.view';
+import { ExportNotesDialog } from '../test-elements/views/dialogs/export-notes-dialog.view';
+import { ImportCompletedDialog } from '../test-elements/views/dialogs/import-completed-dialog.view';
+import { ImportNotesDialog } from '../test-elements/views/dialogs/import-notes-dialog.view';
+import { LeftPanel } from '../test-elements/views/left-panel.view';
+
+const NOTES_TO_CREATE = 3;
+
+let createdNoteIds: string[] = [];
+let createdNoteTitles: string[] = [];
+let expectedCreatedNotes: CreatedNoteData[] = [];
+
+test.beforeEach(async ({ notesApi, page }) => {
+  // Seed a deterministic batch of notes via API for export/import validation.
+  const createdNotes = await createNotesViaApi(notesApi, {
+    count: NOTES_TO_CREATE,
+    titlePrefix: 'Export note',
+    bodyPrefix: 'Export body',
+    tagsPerNote: 2,
+    tagPrefix: 'export-tag',
+  });
+  createdNoteIds = createdNotes.ids;
+  createdNoteTitles = createdNotes.titles;
+  expectedCreatedNotes = createdNotes.notes;
+
+  await page.goto('/');
+});
+
+test.afterEach(async ({ notesApi }) => {
+  // Clean up all note ids collected during the test (original + imported).
+  for (const noteId of createdNoteIds) {
+    try {
+      await notesApi.deleteNote(noteId);
+    } catch {
+      // Best-effort cleanup to keep shared environment stable.
+    }
+  }
+});
+
+test('export and import selected notes from enex file', async ({ page, notesApi }, testInfo) => {
+  const leftPanel = new LeftPanel(page);
+  const exportNotesDialog = new ExportNotesDialog(page);
+  const exportCompletedDialog = new ExportCompletedDialog(page);
+  const importCompletedDialog = new ImportCompletedDialog(page);
+  const importNotesDialog = new ImportNotesDialog(page);
+
+  // Open export flow and select only notes created in this test run.
+  await leftPanel.accountMenu.menuButton.click();
+  await leftPanel.accountMenu.exportEnexMenuButton.click();
+
+  await expect(exportNotesDialog.dialog).toBeVisible();
+  await expect(exportNotesDialog.titleHeading).toBeVisible();
+
+  for (const title of createdNoteTitles) {
+    const noteCheckbox = exportNotesDialog.getNoteCheckboxByTitle(title);
+    await noteCheckbox.check();
+    await expect(noteCheckbox).toBeChecked();
+  }
+
+  await expect(exportNotesDialog.selectedCounter).toContainText(`Selected: ${NOTES_TO_CREATE} of`);
+
+  // Export selected notes and persist downloaded ENEX into the test output folder.
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    exportNotesDialog.exportButton.click(),
+  ]);
+
+  expect(await download.failure()).toBeNull();
+  await expect(exportCompletedDialog.dialog).toBeVisible();
+  await expect(exportCompletedDialog.titleHeading).toBeVisible();
+  await expect(exportCompletedDialog.readyMessage).toBeVisible();
+
+  const downloadedFilePath = testInfo.outputPath(download.suggestedFilename());
+  await download.saveAs(downloadedFilePath);
+  expect(existsSync(downloadedFilePath)).toBeTruthy();
+ 
+  await exportCompletedDialog.closeButton.click();
+  await expect(exportCompletedDialog.dialog).toBeHidden();
+
+
+  // Remove source notes first to prove imported notes are newly created records.
+  for (const noteId of createdNoteIds) {
+    const deleted = await notesApi.deleteNote(noteId);
+    expect(deleted.status).toBe(200);
+  }
+
+  await page.reload();
+
+  for (const title of createdNoteTitles) {
+    await expect(
+      leftPanel.getNoteCardByTitle(title).root,
+      `Original note "${title}" should be deleted before import.`,
+    ).toHaveCount(0);
+  }
+
+  // Import the same exported file using the "Skip duplicate notes" strategy.
+  await leftPanel.accountMenu.menuButton.click();
+  await leftPanel.accountMenu.importEnexMenuButton.click();
+
+  // Ensure import dialog is opened before interacting with import controls.
+  await expect(importNotesDialog.dialog).toBeVisible();
+  await expect(importNotesDialog.titleHeading).toBeVisible();
+  // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
+  await importNotesDialog.skipDuplicateNotesRadio.check();
+  await expect(importNotesDialog.skipDuplicateNotesRadio).toBeChecked();
+
+  // Trigger native file chooser and provide the downloaded ENEX file path.
+  const fileChooserPromise = page.waitForEvent('filechooser');
+  await importNotesDialog.chooseFileButton.click();
+  const fileChooser = await fileChooserPromise;
+  await fileChooser.setFiles(downloadedFilePath);
+
+  // Import button should become enabled only after a valid ENEX file is selected.
+  await expect(importNotesDialog.importButton).toBeEnabled();
+  await importNotesDialog.importButton.click();
+
+  // Wait for import dialog to close and assert successful import summary in completion dialog.
+  await expect(importNotesDialog.dialog).toHaveCount(0);
+  await expect(importCompletedDialog.dialog).toBeVisible();
+  await expect(importCompletedDialog.titleHeading).toBeVisible();
+  await expect(importCompletedDialog.readyMessage).toBeVisible();
+  await expect(importCompletedDialog.successfulCountText).toContainText(
+    `Successfully imported ${NOTES_TO_CREATE} notes`,
+  );
+  await importCompletedDialog.closeButton.click();
+
+  // Verify imported notes are visible in the left panel immediately after import.
+  for (const title of createdNoteTitles) {
+    await expect(
+      leftPanel.getNoteCardByTitle(title).root,
+      `Imported note "${title}" was not found in the left panel.`,
+    ).toBeVisible();
+  }
+
+  // Verify imported notes through API by matching title, body, and tags.
+  for (const expectedNote of expectedCreatedNotes) {
+    const fetched = await notesApi.getNotes({ title: expectedNote.title });
+    expect(fetched.status).toBe(200);
+
+    const notes = 'notes' in fetched.data ? fetched.data.notes : [fetched.data.note];
+    const matchedNote = notes.find((note) => areNotesEquivalent(note, expectedNote));
+
+    expect(matchedNote, `Imported note "${expectedNote.title}" did not match expected data.`).toBeDefined();
+
+    if (matchedNote && !createdNoteIds.includes(matchedNote.id)) {
+      createdNoteIds.push(matchedNote.id);
+    }
+  }
+});
+
+const areNotesEquivalent = (actual: Note, expected: CreatedNoteData) => {
+  const actualSortedTags = [...actual.tags].sort();
+  const expectedSortedTags = [...expected.tags].sort();
+
+  return (
+    actual.title === expected.title &&
+    actual.description === expected.description &&
+    actualSortedTags.length === expectedSortedTags.length &&
+    actualSortedTags.every((tag, index) => tag === expectedSortedTags[index])
+  );
+};

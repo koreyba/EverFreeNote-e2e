@@ -1,4 +1,5 @@
 import { expect, test } from '../test-elements/fixtures/api.fixture';
+import { createNotesViaApi } from '../test-api/flows/notes.api.flow';
 import { BulkDeleteDialog } from '../test-elements/views/dialogs/bulk-delete-dialog.view';
 import { LeftPanel } from '../test-elements/views/left-panel.view';
 
@@ -10,19 +11,13 @@ let needAPINotesCleanup: boolean;
 
 test.beforeEach(async ({ notesApi, page }) => {
   needAPINotesCleanup = true;
-  createdNoteIds = [];
-  createdNoteTitles = [];
-
-  const runId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-
-  for (let index = 1; index <= NOTES_TO_CREATE; index += 1) {
-    const title = `Bulk delete note ${runId}-${index}`;
-    const description = `<p>Bulk delete body ${runId}-${index}</p>`;
-    const created = await notesApi.createNote({ title, description });
-    expect(created.status).toBe(200);
-    createdNoteIds.push(created.data.note.id);
-    createdNoteTitles.push(title);
-  }
+  const createdNotes = await createNotesViaApi(notesApi, {
+    count: NOTES_TO_CREATE,
+    titlePrefix: 'Bulk delete note',
+    bodyPrefix: 'Bulk delete body',
+  });
+  createdNoteIds = createdNotes.ids;
+  createdNoteTitles = createdNotes.titles;
 
   await page.goto('/');
 });

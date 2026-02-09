@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { AccountMenu } from '../subviews/account-menu.subview';
 import { NoteCard } from '../subviews/note-card.subview';
 
 /**
@@ -10,6 +11,7 @@ export class LeftPanel {
   readonly selectNotesButton: Locator;
   readonly exitSelectionButton: Locator;
   readonly deleteSelectedButton: Locator;
+  readonly accountMenu: AccountMenu;
   readonly searchInput: Locator;
   readonly notesList: Locator;
   readonly noteCards: Locator;
@@ -20,6 +22,7 @@ export class LeftPanel {
     this.selectNotesButton = page.getByRole('button', { name: 'Select Notes' });
     this.exitSelectionButton = page.getByRole('button', { name: 'Exit selection' });
     this.deleteSelectedButton = page.getByRole('button', { name: /Delete selected/ });
+    this.accountMenu = new AccountMenu(page);
     this.searchInput = page.getByRole('textbox', { name: 'Search notes...' });
     this.notesList = page.getByRole('list');
     this.noteCards = page.getByTestId('note-card');
@@ -30,8 +33,6 @@ export class LeftPanel {
   }
 
   getNoteCardByTitle(title: string) {
-    return new NoteCard(
-      this.noteCards.filter({ has: this.page.getByRole('heading', { name: title }) }).first(),
-    );
+    return new NoteCard(this.noteCards.filter({ hasText: title }).first());
   }
 }
