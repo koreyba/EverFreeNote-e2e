@@ -74,10 +74,9 @@ test.describe('notes export/import', () => {
       await expect(exportNotesDialog.selectedCounter).toContainText(`Selected: ${NOTES_TO_CREATE} of`);
 
       // Export selected notes and persist downloaded ENEX into the test output folder.
-      const [download] = await Promise.all([
-        page.waitForEvent('download'),
-        exportNotesDialog.exportButton.click(),
-      ]);
+      const downloadPromise = page.waitForEvent('download');
+      await exportNotesDialog.exportButton.click();
+      const download = await downloadPromise;
 
       expect(await download.failure()).toBeNull();
       await expect(exportCompletedDialog.dialog).toBeVisible();
