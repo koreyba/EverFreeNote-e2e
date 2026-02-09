@@ -37,3 +37,27 @@ export const createNotesViaApi = async (
 
   return notes;
 };
+
+export const deleteNotesWithGivenTitleIfFound = async (
+  notesApi: NotesApi,
+  title: string,
+): Promise<string[]> => {
+  const fetched = await notesApi.getNotes({ title });
+
+  if (fetched.status !== 200) {
+    return [];
+  }
+
+  const notes = 'notes' in fetched.data ? fetched.data.notes : [fetched.data.note];
+  const matchingNotes = notes.filter((note) => note.title === title);
+  const deletedNoteIds: string[] = [];
+
+  for (const note of matchingNotes) {
+    const deleted = await notesApi.deleteNote(note.id);
+    if (deleted.status === 200) {
+      deletedNoteIds.push(note.id);
+    }
+  }
+
+  return deletedNoteIds;
+};

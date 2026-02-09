@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { expect, test } from '../test-elements/fixtures/api.fixture';
+import { createNotesViaApi, deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.flow';
 import type { Note } from '../test-api/notes.types';
-import { createNotesViaApi } from '../test-api/flows/notes.api.flow';
 import { ExportCompletedDialog } from '../test-elements/views/dialogs/export-completed-dialog.view';
 import { ExportNotesDialog } from '../test-elements/views/dialogs/export-notes-dialog.view';
 import { ImportCompletedDialog } from '../test-elements/views/dialogs/import-completed-dialog.view';
@@ -36,10 +36,10 @@ test.beforeEach(async ({ notesApi, page }) => {
 });
 
 test.afterEach(async ({ notesApi }) => {
-  // Clean up all note ids collected during the test (original + imported).
-  for (const noteId of createdNoteIds) {
+  // Clean up all notes that belong to this run by their unique titles.
+  for (const title of createdNoteTitles) {
     try {
-      await notesApi.deleteNote(noteId);
+      await deleteNotesWithGivenTitleIfFound(notesApi, title);
     } catch {
       // Best-effort cleanup to keep shared environment stable.
     }
@@ -133,14 +133,6 @@ test('export and import selected notes from enex file', async ({ page, notesApi 
   );
   await importCompletedDialog.closeButton.click();
 
-  // Verify imported notes are visible in the left panel immediately after import.
-  for (const title of createdNoteTitles) {
-    await expect(
-      leftPanel.getNoteCardByTitle(title).root,
-      `Imported note "${title}" was not found in the left panel.`,
-    ).toBeVisible();
-  }
-
   // Verify imported notes through API by matching title, body, and tags.
   for (const expectedNote of expectedCreatedNotes) {
     const fetched = await notesApi.getNotes({ title: expectedNote.title });
@@ -150,10 +142,14 @@ test('export and import selected notes from enex file', async ({ page, notesApi 
     const matchedNote = notes.find((note) => areNotesEquivalent(note, expectedNote));
 
     expect(matchedNote, `Imported note "${expectedNote.title}" did not match expected data.`).toBeDefined();
+  }
 
-    if (matchedNote && !createdNoteIds.includes(matchedNote.id)) {
-      createdNoteIds.push(matchedNote.id);
-    }
+  // Verify imported notes are visible in the left panel immediately after import.
+  for (const title of createdNoteTitles) {
+    await expect(
+      leftPanel.getNoteCardByTitle(title).root,
+      `Imported note "${title}" was not found in the left panel.`,
+    ).toBeVisible();
   }
 });
 
