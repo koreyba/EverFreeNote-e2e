@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { AccountMenu } from '../subviews/account-menu.subview';
 import { NoteCard } from '../subviews/note-card.subview';
+import { SearchControls } from '../subviews/search-controls.subview';
 
 /**
  * Left panel containing navigation buttons and the notes list.
@@ -12,7 +13,7 @@ export class LeftPanel {
   readonly exitSelectionButton: Locator;
   readonly deleteSelectedButton: Locator;
   readonly accountMenu: AccountMenu;
-  readonly searchInput: Locator;
+  readonly searchControls: SearchControls;
   readonly notesList: Locator;
   readonly noteCards: Locator;
 
@@ -23,7 +24,7 @@ export class LeftPanel {
     this.exitSelectionButton = page.getByRole('button', { name: 'Exit selection' });
     this.deleteSelectedButton = page.getByRole('button', { name: /Delete selected/ });
     this.accountMenu = new AccountMenu(page);
-    this.searchInput = page.getByRole('textbox', { name: 'Search notes...' });
+    this.searchControls = new SearchControls(page);
     this.notesList = page.getByRole('list');
     this.noteCards = page.getByTestId('note-card');
   }

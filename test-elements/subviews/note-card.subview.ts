@@ -17,4 +17,8 @@ export class NoteCard {
     this.dateParagraph = root.locator('p').nth(1);
     this.checkbox = root.getByRole('checkbox');
   }
+
+  getTagChipByText(tagText: string) {
+    return this.root.getByText(tagText, { exact: true });
+  }
 }
