@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { AccountMenu } from '../subviews/account-menu.subview';
+import { FullTextSearchResults } from '../subviews/full-text-search-results.subview';
 import { NoteCard } from '../subviews/note-card.subview';
 import { SearchControls } from '../subviews/search-controls.subview';
 
@@ -14,6 +15,7 @@ export class LeftPanel {
   readonly deleteSelectedButton: Locator;
   readonly accountMenu: AccountMenu;
   readonly searchControls: SearchControls;
+  readonly fullTextSearchResults: FullTextSearchResults;
   readonly notesList: Locator;
   readonly noteCards: Locator;
 
@@ -25,6 +27,7 @@ export class LeftPanel {
     this.deleteSelectedButton = page.getByRole('button', { name: /Delete selected/ });
     this.accountMenu = new AccountMenu(page);
     this.searchControls = new SearchControls(page);
+    this.fullTextSearchResults = new FullTextSearchResults(page);
     this.notesList = page.getByRole('list');
     this.noteCards = page.getByTestId('note-card');
   }
