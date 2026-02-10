@@ -67,14 +67,22 @@ export class NotesApi {
   private async parse<T>(
     res: Awaited<ReturnType<APIRequestContext['get']>>,
   ): Promise<ApiResponse<T>> {
-    return {
-      status: res.status(),
-      data: (await res.json()) as T,
-    };
+    const status = res.status();
+    let data: T;
+
+    try {
+      data = (await res.json()) as T;
+    } catch {
+      const text = await res.text();
+      throw new Error(`Expected JSON response but got status ${status}: ${text.slice(0, 200)}`);
+    }
+
+    return { status, data };
   }
 
   /**
    * Retries once after HTTP 401 by recreating API context with forced token refresh.
+   * If the retry also returns 401, the error response is returned as-is (no further retries).
    */
   private async requestWithAuthRetry(
     makeRequest: (ctx: APIRequestContext) => Promise<Awaited<ReturnType<APIRequestContext['get']>>>,

@@ -1,13 +1,9 @@
-import dotenv from 'dotenv';
 import fs from 'fs';
-import path from 'path';
 import { request, type APIRequestContext } from '@playwright/test';
 import {
   AUTH_STORAGE_STATE_PATH,
   createPersistentAuthStorageState,
 } from '../test-utils/auth-state';
-
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const EXPIRY_SAFETY_WINDOW_SECONDS = 5 * 60;
 
@@ -59,6 +55,7 @@ type EnsureSessionOptions = {
 const decodeBase64Url = (input: string) => {
   let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
   const pad = base64.length % 4;
+  if (pad === 1) throw new Error('Invalid Base64-URL input: length % 4 === 1');
   if (pad === 2) base64 += '==';
   if (pad === 3) base64 += '=';
   return Buffer.from(base64, 'base64').toString('utf-8');
@@ -73,8 +70,9 @@ const encodeBase64Url = (input: string) => {
     .replace(/=+$/, '');
 };
 
-/** Matches only canonical Supabase auth token cookie names. */
-const isSupabaseAuthTokenCookie = (cookieName: string) => /^sb-[^-]+-auth-token$/.test(cookieName);
+/** Matches Supabase auth token cookies, including chunked variants (.0, .1, ...). */
+const isSupabaseAuthTokenCookie = (cookieName: string) =>
+  /^sb-.+-auth-token(\.\d+)?$/.test(cookieName);
 
 /** Reads and parses Playwright storage state from disk. */
 const readStorageState = (storagePath = AUTH_STORAGE_STATE_PATH): StorageState => {
@@ -132,7 +130,11 @@ const readSession = (storagePath = AUTH_STORAGE_STATE_PATH): SupabaseSession => 
   return parseSessionFromCookie(cookie);
 };
 
-/** Persists refreshed session fields back into the auth cookie. */
+/**
+ * Persists refreshed session fields back into the auth cookie.
+ * WARNING: Not safe for concurrent access from multiple workers.
+ * Requires fullyParallel: false or an external lock if parallel mode is enabled.
+ */
 const writeSession = (session: SupabaseSession, storagePath = AUTH_STORAGE_STATE_PATH) => {
   const state = readStorageState(storagePath);
   const cookie = getAuthCookie(state);
@@ -169,53 +171,50 @@ const getIssuerFromSession = (session: SupabaseSession): string => {
   return issuer;
 };
 
+/** Resolves the Supabase project root URL from the JWT issuer claim. */
+const getProjectBaseUrl = (session: SupabaseSession): string => {
+  const issuer = getIssuerFromSession(session);
+  return issuer.replace(/\/auth\/v1$/, '');
+};
+
 /** Resolves the Supabase Edge Functions base URL. */
 const getFunctionsBaseUrl = (session: SupabaseSession): string => {
   if (process.env.SUPABASE_FUNCTIONS_URL) {
     return process.env.SUPABASE_FUNCTIONS_URL.replace(/\/$/, '') + '/';
   }
 
-  const issuer = getIssuerFromSession(session);
-  return `${issuer.replace(/\/auth\/v1$/, '')}/functions/v1/`;
+  return `${getProjectBaseUrl(session)}/functions/v1/`;
 };
 
 /** Builds Supabase Auth API base URL used for refresh token exchange. */
-const getAuthBaseUrl = (session: SupabaseSession): string => {
-  const issuer = getIssuerFromSession(session);
-  return `${issuer.replace(/\/auth\/v1$/, '')}/auth/v1/`;
+const getAuthBaseUrl = (session: SupabaseSession): string =>
+  `${getProjectBaseUrl(session)}/auth/v1/`;
+
+/** Builds shared headers (optional apikey) used by all Supabase requests. */
+const getBaseHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {};
+
+  if (process.env.SUPABASE_ANON_KEY) {
+    headers.apikey = process.env.SUPABASE_ANON_KEY;
+  }
+
+  return headers;
 };
 
 /** Builds auth headers (Bearer token + optional apikey) from the saved session. */
-const getHeaders = (session: SupabaseSession): Record<string, string> => {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${session.access_token}`,
-    'Content-Type': 'application/json',
-  };
-
-  if (process.env.SUPABASE_ANON_KEY) {
-    headers.apikey = process.env.SUPABASE_ANON_KEY;
-  }
-
-  return headers;
-};
+const getHeaders = (session: SupabaseSession): Record<string, string> => ({
+  ...getBaseHeaders(),
+  Authorization: `Bearer ${session.access_token}`,
+});
 
 /** Builds headers for refresh-token requests to Supabase Auth API. */
-const getRefreshHeaders = (): Record<string, string> => {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  if (process.env.SUPABASE_ANON_KEY) {
-    headers.apikey = process.env.SUPABASE_ANON_KEY;
-  }
-
-  return headers;
-};
+const getRefreshHeaders = (): Record<string, string> => getBaseHeaders();
 
 /** Returns remaining lifetime in seconds for current access token. */
 const getSessionTtlSeconds = (session: SupabaseSession): number => {
   if (typeof session.expires_at !== 'number') {
-    return Number.POSITIVE_INFINITY;
+    console.warn('[auth] Session has no expires_at; treating as expired to force refresh.');
+    return 0;
   }
 
   return session.expires_at - Math.floor(Date.now() / 1000);
@@ -297,7 +296,11 @@ const ensureFreshSession = async (options: EnsureSessionOptions = {}): Promise<S
     writeSession(refreshed);
 
     return refreshed;
-  } catch {
+  } catch (refreshError) {
+    console.warn(
+      '[auth] Token refresh failed, falling back to UI re-login:',
+      refreshError instanceof Error ? refreshError.message : refreshError,
+    );
     await createPersistentAuthStorageState(getBaseUrlForUiAuth());
     session = readSession();
 
