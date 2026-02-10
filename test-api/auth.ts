@@ -51,6 +51,10 @@ type RefreshTokenResponse = {
   expires_in?: number;
 };
 
+type EnsureSessionOptions = {
+  forceRefresh?: boolean;
+};
+
 /** Decodes a Base64-URL encoded string (used in JWTs and Supabase cookies). */
 const decodeBase64Url = (input: string) => {
   let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
@@ -280,10 +284,11 @@ const getBaseUrlForUiAuth = (): string => {
 };
 
 /** Ensures usable session by refresh or full storage state regeneration fallback. */
-const ensureFreshSession = async (): Promise<SupabaseSession> => {
+const ensureFreshSession = async (options: EnsureSessionOptions = {}): Promise<SupabaseSession> => {
   let session = readSession();
+  const shouldRefresh = options.forceRefresh || isSessionExpiringSoon(session);
 
-  if (!isSessionExpiringSoon(session)) {
+  if (!shouldRefresh) {
     return session;
   }
 
@@ -310,8 +315,10 @@ const ensureFreshSession = async (): Promise<SupabaseSession> => {
  * Creates an authenticated Playwright {@link APIRequestContext} for Supabase Edge Functions.
  * Auth is refreshed on demand and can self-heal by regenerating storage state when needed.
  */
-export const createAuthedContext = async (): Promise<APIRequestContext> => {
-  const session = await ensureFreshSession();
+export const createAuthedContext = async (
+  options: EnsureSessionOptions = {},
+): Promise<APIRequestContext> => {
+  const session = await ensureFreshSession(options);
 
   return request.newContext({
     baseURL: getFunctionsBaseUrl(session),

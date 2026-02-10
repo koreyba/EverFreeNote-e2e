@@ -22,11 +22,18 @@ export type ApiResponse<T> = {
  * ```
  */
 export class NotesApi {
-  constructor(private readonly api: APIRequestContext) {}
+  constructor(
+    private api: APIRequestContext,
+    private readonly recreateContext: (options?: {
+      forceRefresh?: boolean;
+    }) => Promise<APIRequestContext>,
+  ) {}
 
   /** POST `create-note` - creates a new note. */
   async createNote(payload: CreateNotePayload = {}) {
-    const res = await this.api.post('create-note', { data: payload });
+    const res = await this.requestWithAuthRetry((ctx) =>
+      ctx.post('create-note', { data: payload }),
+    );
     return this.parse<{ note: Note }>(res);
   }
 
@@ -35,7 +42,7 @@ export class NotesApi {
    * Always returns normalized payload shape: `{ notes: Note[] }`.
    */
   async getNotes(query: GetNotesQuery = {}): Promise<ApiResponse<{ notes: Note[] }>> {
-    const res = await this.api.get('get-notes', { params: query });
+    const res = await this.requestWithAuthRetry((ctx) => ctx.get('get-notes', { params: query }));
     const parsed = await this.parse<{ note: Note } | { notes: Note[] }>(res);
     const notes = 'notes' in parsed.data ? parsed.data.notes : [parsed.data.note];
 
@@ -47,7 +54,7 @@ export class NotesApi {
 
   /** POST `delete-note` - deletes a note by id. */
   async deleteNote(id: string) {
-    const res = await this.api.post('delete-note', { data: { id } });
+    const res = await this.requestWithAuthRetry((ctx) => ctx.post('delete-note', { data: { id } }));
     return this.parse<{ id: string }>(res);
   }
 
@@ -64,5 +71,22 @@ export class NotesApi {
       status: res.status(),
       data: (await res.json()) as T,
     };
+  }
+
+  /**
+   * Retries once after HTTP 401 by recreating API context with forced token refresh.
+   */
+  private async requestWithAuthRetry(
+    makeRequest: (ctx: APIRequestContext) => Promise<Awaited<ReturnType<APIRequestContext['get']>>>,
+  ): Promise<Awaited<ReturnType<APIRequestContext['get']>>> {
+    const firstResponse = await makeRequest(this.api);
+    if (firstResponse.status() !== 401) {
+      return firstResponse;
+    }
+
+    await this.api.dispose();
+    this.api = await this.recreateContext({ forceRefresh: true });
+
+    return makeRequest(this.api);
   }
 }

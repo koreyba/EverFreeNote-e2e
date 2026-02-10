@@ -8,7 +8,7 @@ export const test = base.extend<{ notesApi: NotesApi }>({
     // Create an authenticated API request context for this test run.
     const apiContext = await createAuthedContext();
     // Build a Notes API helper on top of the authenticated context.
-    const notes = new NotesApi(apiContext);
+    const notes = new NotesApi(apiContext, (options) => createAuthedContext(options));
     // Expose the fixture to the test body and dependent fixtures.
     await use(notes);
     // Teardown: dispose API resources after the test is finished.
