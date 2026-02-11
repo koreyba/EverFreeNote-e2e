@@ -56,6 +56,7 @@ test.describe('notes export/import', () => {
     importNotesDialog,
   }, testInfo) => {
     let downloadedFilePath: string;
+
     await test.step('export notes', async () => {
       // Open export flow and select only notes created in this test run.
       await leftPanel.accountMenu.menuButton.click();

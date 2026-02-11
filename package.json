@@ -9,6 +9,8 @@
     "test:ui": "playwright test --ui",
     "test:chromium": "playwright test --project=chromium",
     "test:report": "playwright show-report",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -20,7 +22,12 @@
     "@playwright/mcp": "^0.0.63",
     "@playwright/test": "^1.58.1",
     "@types/node": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
     "dotenv": "^17.2.3",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.5.1",
     "prettier": "^3.8.1",
     "typescript": "^5.6.3"
   }
