@@ -4,7 +4,7 @@ import { deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.fl
 let createdNoteTitle = '';
 let shouldCleanupCreatedNote = true;
 
-test.describe('notes CRUD', () => {
+test.describe('notes crud', () => {
   test.beforeEach(async ({ page }) => {
     shouldCleanupCreatedNote = true;
     createdNoteTitle = '';
@@ -23,46 +23,57 @@ test.describe('notes CRUD', () => {
     }
   });
 
-  test('create, read, and delete a note', async ({ leftPanel, editView, readView, deleteDialog }) => {
+  test('create, read, and delete a note', async ({
+    leftPanel,
+    editView,
+    readView,
+    deleteDialog,
+  }) => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     createdNoteTitle = `Created by Playwright ${timestamp}`;
     const noteBodyText = `Text body ${timestamp}`;
 
-    await leftPanel.newNoteButton.click();
-    await editView.noteTitleInput.click();
-    await editView.noteTitleInput.fill(createdNoteTitle);
-    await editView.noteContentArea.click();
-    await editView.tiptapEditor.fill(noteBodyText);
+    await test.step('create a new note', async () => {
+      await leftPanel.newNoteButton.click();
+      await editView.noteTitleInput.click();
+      await editView.noteTitleInput.fill(createdNoteTitle);
+      await editView.noteContentArea.click();
+      await editView.tiptapEditor.fill(noteBodyText);
 
-    await expect(editView.tiptapEditor).toContainText(noteBodyText);
+      await expect(editView.tiptapEditor).toContainText(noteBodyText);
 
-    await editView.saveButton.click();
+      await editView.saveButton.click();
+    });
 
-    await expect(editView.readButton).toBeEnabled();
+    await test.step('read the created note', async () => {
+      await expect(editView.readButton).toBeEnabled();
 
-    await editView.readButton.click();
+      await editView.readButton.click();
 
-    await expect(readView.readingHeading).toBeVisible();
-    await expect(readView.noteText).toContainText(noteBodyText);
+      await expect(readView.readingHeading).toBeVisible();
+      await expect(readView.noteText).toContainText(noteBodyText);
 
-    const noteCard = leftPanel.getNoteCardNumber(0);
+      const noteCard = leftPanel.getNoteCardNumber(0);
 
-    await expect(noteCard.titleHeading).toHaveText(createdNoteTitle);
-    await expect(noteCard.bodyParagraph).toHaveText(noteBodyText);
+      await expect(noteCard.titleHeading).toHaveText(createdNoteTitle);
+      await expect(noteCard.bodyParagraph).toHaveText(noteBodyText);
 
-    const date = getFormattedDate();
+      const date = getFormattedDate();
 
-    await expect(noteCard.dateParagraph).toHaveText(date);
+      await expect(noteCard.dateParagraph).toHaveText(date);
+    });
 
-    await readView.deleteButton.click();
-    await expect(deleteDialog.dialog).toBeVisible();
+    await test.step('delete the created note', async () => {
+      await readView.deleteButton.click();
+      await expect(deleteDialog.dialog).toBeVisible();
 
-    await deleteDialog.confirmButton.click();
-    await expect(readView.emptyStateText).toBeVisible();
+      await deleteDialog.confirmButton.click();
+      await expect(readView.emptyStateText).toBeVisible();
 
-    const deletedNote = leftPanel.getNoteCardByTitle(createdNoteTitle);
-    await expect(deletedNote.root, 'Deleted note was found when not expected').toHaveCount(0);
-    shouldCleanupCreatedNote = false;
+      const deletedNote = leftPanel.getNoteCardByTitle(createdNoteTitle);
+      await expect(deletedNote.root, 'Deleted note was found when not expected').toHaveCount(0);
+      shouldCleanupCreatedNote = false;
+    });
   });
 });
 

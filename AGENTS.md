@@ -23,6 +23,7 @@ Rules regarding tests:
 4. Test data should be unique (timestamp/uuid) to avoid collisions in shared environments.
 5. Each spec file must use at least one top-level `test.describe(...)` that groups the feature/scenario; keep hooks and tests inside it.
 6. Tests should consume Page Objects through typed fixtures (for example from `page-objects.fixture.ts`), not local constructors in test bodies.
+7. Every `expect` added in tests must include an explicit failure message describing what was expected.
 
 Rules regarding types:
 

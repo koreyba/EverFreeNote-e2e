@@ -73,105 +73,125 @@ test.describe('notes search', () => {
     leftPanel,
     readView,
   }) => {
-    // Start with short-query search mode (<= 3 characters).
-    await leftPanel.searchControls.searchInput.fill(SHORT_QUERY);
+    await test.step('search a text', async () => {
+      // Start with short-query search mode (<= 3 characters).
+      await leftPanel.searchControls.searchInput.fill(SHORT_QUERY);
 
-    // Ensure search UI reacts and shows search state.
-    await expect(leftPanel.searchControls.clearSearchButton).toBeVisible();
-    await expect(leftPanel.searchControls.notesDisplayedCounter).toContainText('Notes displayed:');
+      // Ensure search UI reacts and shows search state.
+      await expect(leftPanel.searchControls.clearSearchButton).toBeVisible();
+      await expect(leftPanel.searchControls.notesDisplayedCounter).toContainText(
+        'Notes displayed:',
+      );
 
-    // Validate query-only results: expected notes are present and unrelated one is absent.
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toBeVisible();
-    await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(0);
+      // Validate query-only results: expected notes are present and unrelated one is absent.
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toBeVisible();
+      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(
+        0,
+      );
+    });
 
-    // Apply tag filter from the matched note card.
-    await leftPanel
-      .getNoteCardByTitle(noteMatchedWithTag.title)
-      .getTagChipByText(filterTag)
-      .click();
+    await test.step('apply a tag filter', async () => {
+      // Apply tag filter from the matched note card.
+      await leftPanel
+        .getNoteCardByTitle(noteMatchedWithTag.title)
+        .getTagChipByText(filterTag)
+        .click();
 
-    // Confirm tag-filtered mode is active and narrowed to one note.
-    await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
-    await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
-      'placeholder',
-      `Search in "${filterTag}" notes...`,
-    );
-    await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
-      'Notes displayed: 1 out of 1',
-    );
+      // Confirm tag-filtered mode is active and narrowed to one note.
+      await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
+      await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
+        'placeholder',
+        `Search in "${filterTag}" notes...`,
+      );
+      await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
+        'Notes displayed: 1 out of 1',
+      );
 
-    // Ensure only the expected note remains in query + tag filter mode.
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
-    await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(0);
+      // Ensure only the expected note remains in query + tag filter mode.
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
+      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(
+        0,
+      );
+    });
 
-    // Clear only text search and keep tag filter to validate tag-only narrowing.
-    await leftPanel.searchControls.clearSearchButton.click();
-    await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
-      'Notes displayed: 2 out of 2',
-    );
+    await test.step('clear text search', async () => {
+      // Clear only text search and keep tag filter to validate tag-only narrowing.
+      await leftPanel.searchControls.clearSearchButton.click();
+      await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
+        'Notes displayed: 2 out of 2',
+      );
 
-    // Ensure tag-only mode keeps tagged notes and excludes notes without the tag.
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-    await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toBeVisible();
-    await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
+      // Ensure tag-only mode keeps tagged notes and excludes notes without the tag.
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
+      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toBeVisible();
+      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
+    });
 
-    // Open the primary matched note and verify its body content in read mode.
-    await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root.click();
-    await expect(readView.readingHeading).toBeVisible();
-    await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+    await test.step('open a note and verify its content', async () => {
+      // Open the primary matched note and verify its body content in read mode.
+      await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root.click();
+      await expect(readView.readingHeading).toBeVisible();
+      await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+    });
   });
 
   test('long query search shows full-text results and supports tag filtering', async ({
     leftPanel,
     readView,
   }) => {
-    // Start with long-query mode (> 3 characters).
-    await leftPanel.searchControls.searchInput.fill(fullTextQuery);
+    await test.step('perform full-text search', async () => {
+      // Start with long-query mode (> 3 characters).
+      await leftPanel.searchControls.searchInput.fill(fullTextQuery);
 
-    // Ensure full-text result block is visible and includes cheap signal checks.
-    await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 2 notes');
-    await expect(leftPanel.fullTextSearchResults.searchDurationText).toHaveText(/^\d+ms$/);
-    await expect(leftPanel.fullTextSearchResults.searchModeLabel).toBeVisible();
-    await expect(leftPanel.fullTextSearchResults.highlightedFragments.first()).toBeVisible();
+      // Ensure full-text result block is visible and includes cheap signal checks.
+      await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 2 notes');
+      await expect(leftPanel.fullTextSearchResults.searchDurationText).toHaveText(/^\d+ms$/);
+      await expect(leftPanel.fullTextSearchResults.searchModeLabel).toBeVisible();
+      await expect(leftPanel.fullTextSearchResults.highlightedFragments.first()).toBeVisible();
 
-    // Validate query-only results: expected notes are present and unrelated one is absent.
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
-    ).toBeVisible();
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
-    ).toBeVisible();
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
-    ).toHaveCount(0);
+      // Validate query-only results: expected notes are present and unrelated one is absent.
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
+      ).toBeVisible();
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
+      ).toBeVisible();
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
+      ).toHaveCount(0);
+    });
 
-    // Apply tag filter inside the full-text result list.
-    await leftPanel.fullTextSearchResults
-      .getTagChipByTitle(noteMatchedWithTag.title, filterTag)
-      .click();
+    await test.step('apply tag filter', async () => {
+      // Apply tag filter inside the full-text result list.
+      await leftPanel.fullTextSearchResults
+        .getTagChipByTitle(noteMatchedWithTag.title, filterTag)
+        .click();
 
-    // Confirm both filters are active and only one expected result remains.
-    await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
-    await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
-      'placeholder',
-      `Search in "${filterTag}" notes...`,
-    );
-    await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 1 note');
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
-    ).toBeVisible();
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
-    ).toHaveCount(0);
-    await expect(
-      leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
-    ).toHaveCount(0);
+      // Confirm both filters are active and only one expected result remains.
+      await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
+      await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
+        'placeholder',
+        `Search in "${filterTag}" notes...`,
+      );
+      await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 1 note');
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
+      ).toBeVisible();
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
+      ).toHaveCount(0);
+      await expect(
+        leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
+      ).toHaveCount(0);
+    });
 
-    // Open the remaining result and verify its body content in read mode.
-    await leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title).click();
-    await expect(readView.readingHeading).toBeVisible();
-    await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+    await test.step('open a note and verify its content', async () => {
+      // Open the remaining result and verify its body content in read mode.
+      await leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title).click();
+      await expect(readView.readingHeading).toBeVisible();
+      await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+    });
   });
 });
