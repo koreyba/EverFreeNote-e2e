@@ -61,42 +61,73 @@ test.describe('notes export/import', () => {
       await leftPanel.accountMenu.menuButton.click();
       await leftPanel.accountMenu.exportEnexMenuButton.click();
 
-      await expect(exportNotesDialog.dialog).toBeVisible();
-      await expect(exportNotesDialog.titleHeading).toBeVisible();
+      await expect(
+        exportNotesDialog.dialog,
+        'Export notes dialog should be visible after opening export flow',
+      ).toBeVisible();
+      await expect(
+        exportNotesDialog.titleHeading,
+        'Export notes dialog title should be visible',
+      ).toBeVisible();
 
       for (const title of createdNoteTitles) {
         const noteCheckbox = exportNotesDialog.getNoteCheckboxByTitle(title);
         await noteCheckbox.check();
-        await expect(noteCheckbox).toBeChecked();
+        await expect(
+          noteCheckbox,
+          `Note checkbox for "${title}" should be checked before export`,
+        ).toBeChecked();
       }
 
-      await expect(exportNotesDialog.selectedCounter).toContainText(
-        `Selected: ${NOTES_TO_CREATE} of`,
-      );
+      await expect(
+        exportNotesDialog.selectedCounter,
+        'Selected counter should reflect the number of notes picked for export',
+      ).toContainText(`Selected: ${NOTES_TO_CREATE} of`);
 
       // Export selected notes and persist downloaded ENEX into the test output folder.
       const downloadPromise = page.waitForEvent('download');
       await exportNotesDialog.exportButton.click();
       const download = await downloadPromise;
 
-      expect(await download.failure()).toBeNull();
-      await expect(exportCompletedDialog.dialog).toBeVisible();
-      await expect(exportCompletedDialog.titleHeading).toBeVisible();
-      await expect(exportCompletedDialog.readyMessage).toBeVisible();
+      expect(
+        await download.failure(),
+        'Download should complete successfully without browser-reported failure',
+      ).toBeNull();
+      await expect(
+        exportCompletedDialog.dialog,
+        'Export completed dialog should appear after export finishes',
+      ).toBeVisible();
+      await expect(
+        exportCompletedDialog.titleHeading,
+        'Export completed dialog title should be visible',
+      ).toBeVisible();
+      await expect(
+        exportCompletedDialog.readyMessage,
+        'Export completed dialog should show ready message',
+      ).toBeVisible();
 
       downloadedFilePath = testInfo.outputPath(download.suggestedFilename());
       await download.saveAs(downloadedFilePath);
-      expect(existsSync(downloadedFilePath)).toBeTruthy();
+      expect(
+        existsSync(downloadedFilePath),
+        'Exported ENEX file should exist on disk after saving download',
+      ).toBeTruthy();
 
       await exportCompletedDialog.closeButton.click();
-      await expect(exportCompletedDialog.dialog).toBeHidden();
+      await expect(
+        exportCompletedDialog.dialog,
+        'Export completed dialog should be hidden after closing it',
+      ).toBeHidden();
     });
 
     await test.step('delete exported notes', async () => {
       // Remove source notes first to prove imported notes are newly created records.
       for (const noteId of createdNoteIds) {
         const deleted = await notesApi.deleteNote(noteId);
-        expect(deleted.status).toBe(200);
+        expect(
+          deleted.status,
+          `API should delete original note with ID ${noteId} before import`,
+        ).toBe(200);
       }
 
       await page.reload();
@@ -115,11 +146,20 @@ test.describe('notes export/import', () => {
       await leftPanel.accountMenu.importEnexMenuButton.click();
 
       // Ensure import dialog is opened before interacting with import controls.
-      await expect(importNotesDialog.dialog).toBeVisible();
-      await expect(importNotesDialog.titleHeading).toBeVisible();
+      await expect(
+        importNotesDialog.dialog,
+        'Import notes dialog should be visible after opening import flow',
+      ).toBeVisible();
+      await expect(
+        importNotesDialog.titleHeading,
+        'Import notes dialog title should be visible',
+      ).toBeVisible();
       // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
       await importNotesDialog.skipDuplicateNotesRadio.check();
-      await expect(importNotesDialog.skipDuplicateNotesRadio).toBeChecked();
+      await expect(
+        importNotesDialog.skipDuplicateNotesRadio,
+        '"Skip duplicate notes" option should be selected before import',
+      ).toBeChecked();
 
       // Trigger native file chooser and provide the downloaded ENEX file path.
       const fileChooserPromise = page.waitForEvent('filechooser');
@@ -128,17 +168,33 @@ test.describe('notes export/import', () => {
       await fileChooser.setFiles(downloadedFilePath);
 
       // Import button should become enabled only after a valid ENEX file is selected.
-      await expect(importNotesDialog.importButton).toBeEnabled();
+      await expect(
+        importNotesDialog.importButton,
+        'Import button should become enabled after selecting a valid ENEX file',
+      ).toBeEnabled();
       await importNotesDialog.importButton.click();
 
       // Wait for import dialog to close and assert successful import summary in completion dialog.
-      await expect(importNotesDialog.dialog).toHaveCount(0);
-      await expect(importCompletedDialog.dialog).toBeVisible();
-      await expect(importCompletedDialog.titleHeading).toBeVisible();
-      await expect(importCompletedDialog.readyMessage).toBeVisible();
-      await expect(importCompletedDialog.successfulCountText).toContainText(
-        `Successfully imported ${NOTES_TO_CREATE} notes`,
-      );
+      await expect(
+        importNotesDialog.dialog,
+        'Import notes dialog should close after starting import',
+      ).toHaveCount(0);
+      await expect(
+        importCompletedDialog.dialog,
+        'Import completed dialog should be visible after import finishes',
+      ).toBeVisible();
+      await expect(
+        importCompletedDialog.titleHeading,
+        'Import completed dialog title should be visible',
+      ).toBeVisible();
+      await expect(
+        importCompletedDialog.readyMessage,
+        'Import completed dialog should show ready message',
+      ).toBeVisible();
+      await expect(
+        importCompletedDialog.successfulCountText,
+        'Import completed dialog should report the expected number of imported notes',
+      ).toContainText(`Successfully imported ${NOTES_TO_CREATE} notes`);
       await importCompletedDialog.closeButton.click();
     });
 
@@ -146,7 +202,10 @@ test.describe('notes export/import', () => {
       // Verify imported notes through API by matching title, body, and tags.
       for (const expectedNote of expectedCreatedNotes) {
         const fetched = await notesApi.getNotes({ title: expectedNote.title });
-        expect(fetched.status).toBe(200);
+        expect(
+          fetched.status,
+          `API should return notes when fetching imported note "${expectedNote.title}" by title`,
+        ).toBe(200);
 
         const notes = fetched.data.notes;
         const matchedNote = notes.find((note) => areNotesEquivalent(note, expectedNote));

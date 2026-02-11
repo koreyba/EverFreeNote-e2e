@@ -78,17 +78,28 @@ test.describe('notes search', () => {
       await leftPanel.searchControls.searchInput.fill(SHORT_QUERY);
 
       // Ensure search UI reacts and shows search state.
-      await expect(leftPanel.searchControls.clearSearchButton).toBeVisible();
-      await expect(leftPanel.searchControls.notesDisplayedCounter).toContainText(
-        'Notes displayed:',
-      );
+      await expect(
+        leftPanel.searchControls.clearSearchButton,
+        'Clear search button should be visible after entering search text',
+      ).toBeVisible();
+      await expect(
+        leftPanel.searchControls.notesDisplayedCounter,
+        'Notes counter should be visible in search mode',
+      ).toContainText('Notes displayed:');
 
       // Validate query-only results: expected notes are present and unrelated one is absent.
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toBeVisible();
-      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(
-        0,
-      );
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root,
+        `Note "${noteMatchedWithTag.title}" should be visible in short-query results`,
+      ).toBeVisible();
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root,
+        `Note "${noteMatchedWithoutTag.title}" should be visible in short-query results`,
+      ).toBeVisible();
+      await expect(
+        leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root,
+        `Note "${noteNotMatchedButWithTag.title}" should not be visible in short-query results`,
+      ).toHaveCount(0);
     });
 
     await test.step('apply a tag filter', async () => {
@@ -99,41 +110,68 @@ test.describe('notes search', () => {
         .click();
 
       // Confirm tag-filtered mode is active and narrowed to one note.
-      await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
-      await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
-        'placeholder',
-        `Search in "${filterTag}" notes...`,
-      );
-      await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
-        'Notes displayed: 1 out of 1',
-      );
+      await expect(
+        leftPanel.searchControls.clearTagsButton,
+        'Clear tags button should be visible after applying tag filter',
+      ).toBeVisible();
+      await expect(
+        leftPanel.searchControls.searchInput,
+        'Search input placeholder should reflect the active tag filter',
+      ).toHaveAttribute('placeholder', `Search in "${filterTag}" notes...`);
+      await expect(
+        leftPanel.searchControls.notesDisplayedCounter,
+        'Notes counter should show one filtered note after applying tag filter',
+      ).toHaveText('Notes displayed: 1 out of 1');
 
       // Ensure only the expected note remains in query + tag filter mode.
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
-      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toHaveCount(
-        0,
-      );
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root,
+        `Tagged note "${noteMatchedWithTag.title}" should remain visible after applying tag filter`,
+      ).toBeVisible();
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root,
+        `Untagged note "${noteMatchedWithoutTag.title}" should be excluded by tag filter`,
+      ).toHaveCount(0);
+      await expect(
+        leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root,
+        `Non-matching note "${noteNotMatchedButWithTag.title}" should stay excluded when text query is active`,
+      ).toHaveCount(0);
     });
 
     await test.step('clear text search', async () => {
       // Clear only text search and keep tag filter to validate tag-only narrowing.
       await leftPanel.searchControls.clearSearchButton.click();
-      await expect(leftPanel.searchControls.notesDisplayedCounter).toHaveText(
-        'Notes displayed: 2 out of 2',
-      );
+      await expect(
+        leftPanel.searchControls.notesDisplayedCounter,
+        'Notes counter should show both notes with the selected tag after clearing text search',
+      ).toHaveText('Notes displayed: 2 out of 2');
 
       // Ensure tag-only mode keeps tagged notes and excludes notes without the tag.
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root).toBeVisible();
-      await expect(leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root).toBeVisible();
-      await expect(leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root).toHaveCount(0);
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root,
+        `Note "${noteMatchedWithTag.title}" should remain visible in tag-only mode`,
+      ).toBeVisible();
+      await expect(
+        leftPanel.getNoteCardByTitle(noteNotMatchedButWithTag.title).root,
+        `Note "${noteNotMatchedButWithTag.title}" should be visible in tag-only mode`,
+      ).toBeVisible();
+      await expect(
+        leftPanel.getNoteCardByTitle(noteMatchedWithoutTag.title).root,
+        `Note "${noteMatchedWithoutTag.title}" should remain hidden because it does not have tag "${filterTag}"`,
+      ).toHaveCount(0);
     });
 
     await test.step('open a note and verify its content', async () => {
       // Open the primary matched note and verify its body content in read mode.
       await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root.click();
-      await expect(readView.readingHeading).toBeVisible();
-      await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+      await expect(
+        readView.readingHeading,
+        'Reading view heading should be visible after opening a search result note',
+      ).toBeVisible();
+      await expect(
+        readView.noteText,
+        'Reading view should show content of the opened matching note',
+      ).toContainText(noteMatchedWithTagBodyText);
     });
   });
 
@@ -146,20 +184,35 @@ test.describe('notes search', () => {
       await leftPanel.searchControls.searchInput.fill(fullTextQuery);
 
       // Ensure full-text result block is visible and includes cheap signal checks.
-      await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 2 notes');
-      await expect(leftPanel.fullTextSearchResults.searchDurationText).toHaveText(/^\d+ms$/);
-      await expect(leftPanel.fullTextSearchResults.searchModeLabel).toBeVisible();
-      await expect(leftPanel.fullTextSearchResults.highlightedFragments.first()).toBeVisible();
+      await expect(
+        leftPanel.fullTextSearchResults.foundNotesText,
+        'Full-text results should report two found notes before tag filtering',
+      ).toHaveText('Found: 2 notes');
+      await expect(
+        leftPanel.fullTextSearchResults.searchDurationText,
+        'Search duration should be shown in milliseconds',
+      ).toHaveText(/^\d+ms$/);
+      await expect(
+        leftPanel.fullTextSearchResults.searchModeLabel,
+        'Full-text search mode label should be visible for long query',
+      ).toBeVisible();
+      await expect(
+        leftPanel.fullTextSearchResults.highlightedFragments.first(),
+        'At least one highlighted fragment should be visible in full-text results',
+      ).toBeVisible();
 
       // Validate query-only results: expected notes are present and unrelated one is absent.
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
+        `Result card for "${noteMatchedWithTag.title}" should be visible in full-text search`,
       ).toBeVisible();
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
+        `Result card for "${noteMatchedWithoutTag.title}" should be visible in full-text search`,
       ).toBeVisible();
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
+        `Result card for "${noteNotMatchedButWithTag.title}" should not be visible in full-text search`,
       ).toHaveCount(0);
     });
 
@@ -170,28 +223,43 @@ test.describe('notes search', () => {
         .click();
 
       // Confirm both filters are active and only one expected result remains.
-      await expect(leftPanel.searchControls.clearTagsButton).toBeVisible();
-      await expect(leftPanel.searchControls.searchInput).toHaveAttribute(
-        'placeholder',
-        `Search in "${filterTag}" notes...`,
-      );
-      await expect(leftPanel.fullTextSearchResults.foundNotesText).toHaveText('Found: 1 note');
+      await expect(
+        leftPanel.searchControls.clearTagsButton,
+        'Clear tags button should be visible after applying full-text tag filter',
+      ).toBeVisible();
+      await expect(
+        leftPanel.searchControls.searchInput,
+        'Search input placeholder should reflect active full-text tag filter',
+      ).toHaveAttribute('placeholder', `Search in "${filterTag}" notes...`);
+      await expect(
+        leftPanel.fullTextSearchResults.foundNotesText,
+        'Full-text results should report one note after tag filtering',
+      ).toHaveText('Found: 1 note');
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title),
+        `Result card for "${noteMatchedWithTag.title}" should remain after full-text tag filter`,
       ).toBeVisible();
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithoutTag.title),
+        `Result card for "${noteMatchedWithoutTag.title}" should be excluded by full-text tag filter`,
       ).toHaveCount(0);
       await expect(
         leftPanel.fullTextSearchResults.getResultCardByTitle(noteNotMatchedButWithTag.title),
+        `Result card for "${noteNotMatchedButWithTag.title}" should remain excluded in full-text + tag mode`,
       ).toHaveCount(0);
     });
 
     await test.step('open a note and verify its content', async () => {
       // Open the remaining result and verify its body content in read mode.
       await leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title).click();
-      await expect(readView.readingHeading).toBeVisible();
-      await expect(readView.noteText).toContainText(noteMatchedWithTagBodyText);
+      await expect(
+        readView.readingHeading,
+        'Reading view heading should be visible after opening full-text search result',
+      ).toBeVisible();
+      await expect(
+        readView.noteText,
+        'Reading view should show body text from the opened full-text result note',
+      ).toContainText(noteMatchedWithTagBodyText);
     });
   });
 });
