@@ -4,7 +4,7 @@ import { NotesApi } from '../../test-api/notes.api';
 
 // Extend Playwright's base test with API-level fixtures.
 export const test = base.extend<{ notesApi: NotesApi }>({
-  notesApi: async (_fixtures, use) => {
+  notesApi: async ({}, use) => {
     // Create an authenticated API request context for this test run.
     const apiContext = await createAuthedContext();
     // Build a Notes API helper on top of the authenticated context.

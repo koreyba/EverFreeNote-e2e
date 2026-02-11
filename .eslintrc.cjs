@@ -17,6 +17,12 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['test-elements/fixtures/**/*.ts'],
+      rules: {
+        'no-empty-pattern': 'off',
+      },
+    },
+    {
       files: ['tests/**/*.ts'],
       extends: ['plugin:playwright/recommended'],
     },
