@@ -15,4 +15,8 @@ export class ExportCompletedDialog {
     this.readyMessage = this.dialog.getByText('File is ready to download.');
     this.closeButton = this.dialog.getByRole('button', { name: 'Close' }).first();
   }
+
+  async closeDialog() {
+    await this.closeButton.click();
+  }
 }

@@ -17,4 +17,12 @@ export class BulkDeleteDialog {
     this.confirmButton = this.dialog.getByRole('button', { name: 'Delete' });
     this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
   }
+
+  async fillCount(count: number) {
+    await this.confirmationInput.fill(String(count));
+  }
+
+  async confirm() {
+    await this.confirmButton.click();
+  }
 }

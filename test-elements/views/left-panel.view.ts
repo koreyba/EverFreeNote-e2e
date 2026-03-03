@@ -39,4 +39,16 @@ export class LeftPanel {
   getNoteCardByTitle(title: string) {
     return new NoteCard(this.noteCards.filter({ hasText: title }).first());
   }
+
+  async clickNewNote() {
+    await this.newNoteButton.click();
+  }
+
+  async clickSelectNotes() {
+    await this.selectNotesButton.click();
+  }
+
+  async clickDeleteSelected() {
+    await this.deleteSelectedButton.click();
+  }
 }

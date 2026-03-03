@@ -21,4 +21,16 @@ export class NoteCard {
   getTagChipByText(tagText: string) {
     return this.root.getByText(tagText, { exact: true });
   }
+
+  async click() {
+    await this.root.click();
+  }
+
+  async select() {
+    await this.checkbox.check();
+  }
+
+  async clickTag(tagText: string) {
+    await this.getTagChipByText(tagText).click();
+  }
 }

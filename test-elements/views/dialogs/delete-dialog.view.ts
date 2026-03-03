@@ -15,4 +15,8 @@ export class DeleteDialog {
     this.confirmButton = this.dialog.getByRole('button', { name: 'Delete' });
     this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
   }
+
+  async confirm() {
+    await this.confirmButton.click();
+  }
 }

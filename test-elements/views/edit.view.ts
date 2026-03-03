@@ -17,4 +17,19 @@ export class EditView {
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.readButton = page.getByRole('button', { name: 'Read' });
   }
+
+  async fillNote(title: string, body: string) {
+    await this.noteTitleInput.click();
+    await this.noteTitleInput.fill(title);
+    await this.noteContentArea.click();
+    await this.tiptapEditor.fill(body);
+  }
+
+  async save() {
+    await this.saveButton.click();
+  }
+
+  async switchToRead() {
+    await this.readButton.click();
+  }
 }

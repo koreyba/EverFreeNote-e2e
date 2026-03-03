@@ -31,4 +31,8 @@ export class ReadView {
   getTagBadgeByText(tagText: string) {
     return this.editorContainer.getByText(tagText, { exact: true });
   }
+
+  async deleteNote() {
+    await this.deleteButton.click();
+  }
 }

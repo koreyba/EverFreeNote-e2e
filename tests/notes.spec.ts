@@ -34,18 +34,15 @@ test.describe('notes crud', () => {
     const noteBodyText = `Text body ${timestamp}`;
 
     await test.step('create a new note', async () => {
-      await leftPanel.newNoteButton.click();
-      await editView.noteTitleInput.click();
-      await editView.noteTitleInput.fill(createdNoteTitle);
-      await editView.noteContentArea.click();
-      await editView.tiptapEditor.fill(noteBodyText);
+      await leftPanel.clickNewNote();
+      await editView.fillNote(createdNoteTitle, noteBodyText);
 
       await expect(
         editView.tiptapEditor,
         'Editor should contain entered note body text before save',
       ).toContainText(noteBodyText);
 
-      await editView.saveButton.click();
+      await editView.save();
     });
 
     await test.step('read the created note', async () => {
@@ -54,7 +51,7 @@ test.describe('notes crud', () => {
         'Read button should be enabled after saving the note',
       ).toBeEnabled();
 
-      await editView.readButton.click();
+      await editView.switchToRead();
 
       await expect(
         readView.readingHeading,
@@ -85,13 +82,13 @@ test.describe('notes crud', () => {
     });
 
     await test.step('delete the created note', async () => {
-      await readView.deleteButton.click();
+      await readView.deleteNote();
       await expect(
         deleteDialog.dialog,
         'Delete confirmation dialog should be visible after clicking delete',
       ).toBeVisible();
 
-      await deleteDialog.confirmButton.click();
+      await deleteDialog.confirm();
       await expect(
         readView.emptyStateText,
         'Empty state text should be visible after deleting the note',

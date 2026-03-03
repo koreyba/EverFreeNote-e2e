@@ -75,7 +75,7 @@ test.describe('notes search', () => {
   }) => {
     await test.step('search a text', async () => {
       // Start with short-query search mode (<= 3 characters).
-      await leftPanel.searchControls.searchInput.fill(SHORT_QUERY);
+      await leftPanel.searchControls.search(SHORT_QUERY);
 
       // Ensure search UI reacts and shows search state.
       await expect(
@@ -104,10 +104,7 @@ test.describe('notes search', () => {
 
     await test.step('apply a tag filter', async () => {
       // Apply tag filter from the matched note card.
-      await leftPanel
-        .getNoteCardByTitle(noteMatchedWithTag.title)
-        .getTagChipByText(filterTag)
-        .click();
+      await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).clickTag(filterTag);
 
       // Confirm tag-filtered mode is active and narrowed to one note.
       await expect(
@@ -140,7 +137,7 @@ test.describe('notes search', () => {
 
     await test.step('clear text search', async () => {
       // Clear only text search and keep tag filter to validate tag-only narrowing.
-      await leftPanel.searchControls.clearSearchButton.click();
+      await leftPanel.searchControls.clearSearch();
       await expect(
         leftPanel.searchControls.notesDisplayedCounter,
         'Notes counter should show both notes with the selected tag after clearing text search',
@@ -163,7 +160,7 @@ test.describe('notes search', () => {
 
     await test.step('open a note and verify its content', async () => {
       // Open the primary matched note and verify its body content in read mode.
-      await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).root.click();
+      await leftPanel.getNoteCardByTitle(noteMatchedWithTag.title).click();
       await expect(
         readView.readingHeading,
         'Reading view heading should be visible after opening a search result note',
@@ -181,7 +178,7 @@ test.describe('notes search', () => {
   }) => {
     await test.step('perform full-text search', async () => {
       // Start with long-query mode (> 3 characters).
-      await leftPanel.searchControls.searchInput.fill(fullTextQuery);
+      await leftPanel.searchControls.search(fullTextQuery);
 
       // Ensure full-text result block is visible and includes cheap signal checks.
       await expect(
@@ -218,9 +215,7 @@ test.describe('notes search', () => {
 
     await test.step('apply tag filter', async () => {
       // Apply tag filter inside the full-text result list.
-      await leftPanel.fullTextSearchResults
-        .getTagChipByTitle(noteMatchedWithTag.title, filterTag)
-        .click();
+      await leftPanel.fullTextSearchResults.clickTagChip(noteMatchedWithTag.title, filterTag);
 
       // Confirm both filters are active and only one expected result remains.
       await expect(
@@ -251,7 +246,7 @@ test.describe('notes search', () => {
 
     await test.step('open a note and verify its content', async () => {
       // Open the remaining result and verify its body content in read mode.
-      await leftPanel.fullTextSearchResults.getResultCardByTitle(noteMatchedWithTag.title).click();
+      await leftPanel.fullTextSearchResults.clickResultCard(noteMatchedWithTag.title);
       await expect(
         readView.readingHeading,
         'Reading view heading should be visible after opening full-text search result',

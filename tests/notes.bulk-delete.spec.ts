@@ -43,12 +43,12 @@ test.describe('notes bulk delete', () => {
         ).toBeVisible();
       }
 
-      await leftPanel.selectNotesButton.click();
+      await leftPanel.clickSelectNotes();
 
       for (const title of createdNoteTitles) {
-        const noteCheckbox = leftPanel.getNoteCardByTitle(title).checkbox;
-        await noteCheckbox.check();
-        await expect(noteCheckbox, `Checkbox for note "${title}" should be checked`).toBeChecked();
+        const noteCard = leftPanel.getNoteCardByTitle(title);
+        await noteCard.select();
+        await expect(noteCard.checkbox, `Checkbox for note "${title}" should be checked`).toBeChecked();
       }
     });
 
@@ -57,19 +57,19 @@ test.describe('notes bulk delete', () => {
         leftPanel.deleteSelectedButton,
         `"Delete selected" button should show ${NOTES_TO_CREATE} notes selected`,
       ).toHaveText(`Delete selected (${NOTES_TO_CREATE})`);
-      await leftPanel.deleteSelectedButton.click();
+      await leftPanel.clickDeleteSelected();
 
       await expect(bulkDeleteDialog.dialog, 'Bulk delete dialog should be visible').toBeVisible();
       await expect(
         bulkDeleteDialog.titleHeading,
         'Bulk delete dialog title should be visible',
       ).toBeVisible();
-      await bulkDeleteDialog.confirmationInput.fill(String(NOTES_TO_CREATE));
+      await bulkDeleteDialog.fillCount(NOTES_TO_CREATE);
       await expect(
         bulkDeleteDialog.confirmButton,
         'Confirm button should be enabled after entering correct count',
       ).toBeEnabled();
-      await bulkDeleteDialog.confirmButton.click();
+      await bulkDeleteDialog.confirm();
       await expect(
         bulkDeleteDialog.dialog,
         'Bulk delete dialog should be hidden after confirmation',

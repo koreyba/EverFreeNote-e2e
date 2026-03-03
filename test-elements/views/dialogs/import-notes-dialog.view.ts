@@ -19,4 +19,16 @@ export class ImportNotesDialog {
     this.importButton = this.dialog.getByRole('button', { name: 'Import' });
     this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
   }
+
+  async selectSkipDuplicates() {
+    await this.skipDuplicateNotesRadio.check();
+  }
+
+  async clickChooseFile() {
+    await this.chooseFileButton.click();
+  }
+
+  async clickImport() {
+    await this.importButton.click();
+  }
 }

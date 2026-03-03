@@ -29,4 +29,12 @@ export class FullTextSearchResults {
   getTagChipByTitle(title: string, tagText: string) {
     return this.getResultCardByTitle(title).getByText(tagText, { exact: true });
   }
+
+  async clickResultCard(title: string) {
+    await this.getResultCardByTitle(title).click();
+  }
+
+  async clickTagChip(title: string, tagText: string) {
+    await this.getTagChipByTitle(title, tagText).click();
+  }
 }

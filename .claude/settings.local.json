@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "*",
+      "mcp__playwright-test__browser_click",
+      "mcp__playwright-test__browser_type"
+    ]
+  }
+}

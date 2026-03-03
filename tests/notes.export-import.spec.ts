@@ -59,8 +59,8 @@ test.describe('notes export/import', () => {
 
     await test.step('export notes', async () => {
       // Open export flow and select only notes created in this test run.
-      await leftPanel.accountMenu.menuButton.click();
-      await leftPanel.accountMenu.exportEnexMenuButton.click();
+      await leftPanel.accountMenu.open();
+      await leftPanel.accountMenu.clickExportEnex();
 
       await expect(
         exportNotesDialog.dialog,
@@ -72,10 +72,9 @@ test.describe('notes export/import', () => {
       ).toBeVisible();
 
       for (const title of createdNoteTitles) {
-        const noteCheckbox = exportNotesDialog.getNoteCheckboxByTitle(title);
-        await noteCheckbox.check();
+        await exportNotesDialog.checkNoteByTitle(title);
         await expect(
-          noteCheckbox,
+          exportNotesDialog.getNoteCheckboxByTitle(title),
           `Note checkbox for "${title}" should be checked before export`,
         ).toBeChecked();
       }
@@ -87,7 +86,7 @@ test.describe('notes export/import', () => {
 
       // Export selected notes and persist downloaded ENEX into the test output folder.
       const downloadPromise = page.waitForEvent('download');
-      await exportNotesDialog.exportButton.click();
+      await exportNotesDialog.clickExport();
       const download = await downloadPromise;
 
       expect(
@@ -114,7 +113,7 @@ test.describe('notes export/import', () => {
         'Exported ENEX file should exist on disk after saving download',
       ).toBeTruthy();
 
-      await exportCompletedDialog.closeButton.click();
+      await exportCompletedDialog.closeDialog();
       await expect(
         exportCompletedDialog.dialog,
         'Export completed dialog should be hidden after closing it',
@@ -143,8 +142,8 @@ test.describe('notes export/import', () => {
 
     await test.step('import notes', async () => {
       // Import the same exported file using the "Skip duplicate notes" strategy.
-      await leftPanel.accountMenu.menuButton.click();
-      await leftPanel.accountMenu.importEnexMenuButton.click();
+      await leftPanel.accountMenu.open();
+      await leftPanel.accountMenu.clickImportEnex();
 
       // Ensure import dialog is opened before interacting with import controls.
       await expect(
@@ -156,7 +155,7 @@ test.describe('notes export/import', () => {
         'Import notes dialog title should be visible',
       ).toBeVisible();
       // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
-      await importNotesDialog.skipDuplicateNotesRadio.check();
+      await importNotesDialog.selectSkipDuplicates();
       await expect(
         importNotesDialog.skipDuplicateNotesRadio,
         '"Skip duplicate notes" option should be selected before import',
@@ -164,7 +163,7 @@ test.describe('notes export/import', () => {
 
       // Trigger native file chooser and provide the downloaded ENEX file path.
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await importNotesDialog.chooseFileButton.click();
+      await importNotesDialog.clickChooseFile();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(downloadedFilePath);
 
@@ -173,7 +172,7 @@ test.describe('notes export/import', () => {
         importNotesDialog.importButton,
         'Import button should become enabled after selecting a valid ENEX file',
       ).toBeEnabled();
-      await importNotesDialog.importButton.click();
+      await importNotesDialog.clickImport();
 
       // Wait for import dialog to close and assert successful import summary in completion dialog.
       await expect(
@@ -196,7 +195,7 @@ test.describe('notes export/import', () => {
         importCompletedDialog.successfulCountText,
         'Import completed dialog should report the expected number of imported notes',
       ).toContainText(`Successfully imported ${NOTES_TO_CREATE} notes`);
-      await importCompletedDialog.closeButton.click();
+      await importCompletedDialog.closeDialog();
     });
 
     await test.step('verify imported notes content', async () => {

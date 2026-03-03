@@ -25,4 +25,12 @@ export class ExportNotesDialog {
   getNoteCheckboxByTitle(title: string) {
     return this.dialog.getByRole('checkbox', { name: `Select note ${title}` });
   }
+
+  async checkNoteByTitle(title: string) {
+    await this.getNoteCheckboxByTitle(title).check();
+  }
+
+  async clickExport() {
+    await this.exportButton.click();
+  }
 }

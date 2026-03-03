@@ -15,4 +15,12 @@ export class SearchControls {
     this.clearTagsButton = page.getByRole('button', { name: 'Clear Tags' });
     this.notesDisplayedCounter = page.getByText(/^Notes displayed:/);
   }
+
+  async search(query: string) {
+    await this.searchInput.fill(query);
+  }
+
+  async clearSearch() {
+    await this.clearSearchButton.click();
+  }
 }

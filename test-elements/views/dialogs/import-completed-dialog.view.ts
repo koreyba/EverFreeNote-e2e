@@ -17,4 +17,8 @@ export class ImportCompletedDialog {
     this.successfulCountText = this.dialog.getByText('Successfully imported');
     this.closeButton = this.dialog.getByRole('button', { name: 'Close' }).first();
   }
+
+  async closeDialog() {
+    await this.closeButton.click();
+  }
 }

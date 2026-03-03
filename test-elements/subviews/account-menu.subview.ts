@@ -15,4 +15,16 @@ export class AccountMenu {
     this.exportEnexMenuButton = page.getByRole('button', { name: 'Export .enex file' });
     this.deleteAccountButton = page.getByRole('button', { name: 'Delete my account' });
   }
+
+  async open() {
+    await this.menuButton.click();
+  }
+
+  async clickExportEnex() {
+    await this.exportEnexMenuButton.click();
+  }
+
+  async clickImportEnex() {
+    await this.importEnexMenuButton.click();
+  }
 }
