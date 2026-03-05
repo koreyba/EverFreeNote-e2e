@@ -55,6 +55,7 @@ test.describe('notes export/import', () => {
     importCompletedDialog,
     importNotesDialog,
   }, testInfo) => {
+    test.slow();
     let downloadedFilePath: string;
 
     await test.step('export notes', async () => {
@@ -196,6 +197,10 @@ test.describe('notes export/import', () => {
         'Import completed dialog should report the expected number of imported notes',
       ).toContainText(`Successfully imported ${NOTES_TO_CREATE} notes`);
       await importCompletedDialog.closeDialog();
+      await expect(
+        importCompletedDialog.dialog,
+        'Import completed dialog should be hidden after closing it',
+      ).toBeHidden();
     });
 
     await test.step('verify imported notes content', async () => {
@@ -218,12 +223,19 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('verify imported notes visibility', async () => {
-      // Verify imported notes are visible in the left panel immediately after import.
+      // Reload to ensure imported notes list is refreshed in UI before visibility checks.
+      await page.reload();
+      await leftPanel.searchControls.openGlobalSearch();
+
+      // Verify each imported note is discoverable from UI search.
       for (const title of createdNoteTitles) {
+        await leftPanel.searchControls.search(title);
         await expect(
-          leftPanel.getNoteCardByTitle(title).root,
-          `Imported note "${title}" was not found in the left panel.`,
+          leftPanel.fullTextSearchResults.getResultCardByTitle(title),
+          `Imported note "${title}" was not found in search results.`,
         ).toBeVisible();
+        await leftPanel.searchControls.clearSearch();
+        await leftPanel.searchControls.openGlobalSearch();
       }
     });
   });

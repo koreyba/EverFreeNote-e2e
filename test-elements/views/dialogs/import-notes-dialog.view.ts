@@ -16,7 +16,7 @@ export class ImportNotesDialog {
     this.titleHeading = this.dialog.getByRole('heading', { name: 'Import ENEX file' });
     this.skipDuplicateNotesRadio = this.dialog.getByRole('radio', { name: 'Skip duplicate notes' });
     this.chooseFileButton = this.dialog.getByRole('button', { name: 'Choose File' });
-    this.importButton = this.dialog.getByRole('button', { name: 'Import' });
+    this.importButton = this.dialog.getByRole('button', { name: /Import/ });
     this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
   }
 

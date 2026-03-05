@@ -43,8 +43,6 @@ test.describe('notes bulk delete', () => {
         ).toBeVisible();
       }
 
-      await leftPanel.clickSelectNotes();
-
       for (const title of createdNoteTitles) {
         const noteCard = leftPanel.getNoteCardByTitle(title);
         await noteCard.select();
@@ -55,8 +53,8 @@ test.describe('notes bulk delete', () => {
     await test.step('delete selected notes', async () => {
       await expect(
         leftPanel.deleteSelectedButton,
-        `"Delete selected" button should show ${NOTES_TO_CREATE} notes selected`,
-      ).toHaveText(`Delete selected (${NOTES_TO_CREATE})`);
+        `"Delete" action should show ${NOTES_TO_CREATE} selected notes`,
+      ).toHaveText(`Delete (${NOTES_TO_CREATE})`);
       await leftPanel.clickDeleteSelected();
 
       await expect(bulkDeleteDialog.dialog, 'Bulk delete dialog should be visible').toBeVisible();

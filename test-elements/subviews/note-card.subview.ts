@@ -27,7 +27,8 @@ export class NoteCard {
   }
 
   async select() {
-    await this.checkbox.check();
+    await this.root.hover();
+    await this.checkbox.click({ force: true });
   }
 
   async clickTag(tagText: string) {

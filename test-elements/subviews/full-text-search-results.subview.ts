@@ -7,18 +7,18 @@ export class FullTextSearchResults {
   readonly root: Locator;
   readonly foundNotesText: Locator;
   readonly searchDurationText: Locator;
-  readonly searchModeLabel: Locator;
   readonly resultCards: Locator;
   readonly highlightedFragments: Locator;
 
   constructor(page: Page) {
-    this.root = page.getByTestId('sidebar-container').filter({
-      has: page.getByText(/^Found:\s+\d+\s+note/),
-    });
-    this.foundNotesText = this.root.getByText(/^Found:\s+\d+\s+note/);
-    this.searchDurationText = this.root.getByText(/^\d+ms$/);
-    this.searchModeLabel = this.root.getByText(/^(Quick|Full text) search$/i);
-    this.resultCards = this.root.getByTestId('note-card');
+    this.root = page
+      .locator('div')
+      .filter({ has: page.getByRole('textbox', { name: /Search notes|In "/i }).first() })
+      .filter({ has: page.getByText(/^Found:\s+\d+\s+note/) })
+      .last();
+    this.foundNotesText = this.root.getByText(/^Found:\s+\d+\s+note/).first();
+    this.searchDurationText = this.root.getByText(/^\d+ms$/).first();
+    this.resultCards = this.root.locator('[data-testid="note-card"], article');
     this.highlightedFragments = this.root.locator('mark');
   }
 

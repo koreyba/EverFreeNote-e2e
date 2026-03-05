@@ -12,6 +12,7 @@ export class LeftPanel {
   readonly newNoteButton: Locator;
   readonly selectNotesButton: Locator;
   readonly exitSelectionButton: Locator;
+  readonly selectedNotesCounter: Locator;
   readonly deleteSelectedButton: Locator;
   readonly accountMenu: AccountMenu;
   readonly searchControls: SearchControls;
@@ -22,9 +23,10 @@ export class LeftPanel {
   constructor(page: Page) {
     this.page = page;
     this.newNoteButton = page.getByRole('button', { name: 'New Note' });
-    this.selectNotesButton = page.getByRole('button', { name: 'Select Notes' });
+    this.selectNotesButton = page.getByRole('button', { name: /Select Notes/i });
     this.exitSelectionButton = page.getByRole('button', { name: 'Exit selection' });
-    this.deleteSelectedButton = page.getByRole('button', { name: /Delete selected/ });
+    this.selectedNotesCounter = page.getByText(/^\d+\s+selected$/);
+    this.deleteSelectedButton = page.getByRole('button', { name: /Delete \(\d+\)|Delete selected/i });
     this.accountMenu = new AccountMenu(page);
     this.searchControls = new SearchControls(page);
     this.fullTextSearchResults = new FullTextSearchResults(page);

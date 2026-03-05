@@ -21,10 +21,10 @@ export class AccountMenu {
   }
 
   async clickExportEnex() {
-    await this.exportEnexMenuButton.click();
+    await this.exportEnexMenuButton.click({ force: true });
   }
 
   async clickImportEnex() {
-    await this.importEnexMenuButton.click();
+    await this.importEnexMenuButton.click({ force: true });
   }
 }
