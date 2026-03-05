@@ -11,14 +11,10 @@ export class FullTextSearchResults {
   readonly highlightedFragments: Locator;
 
   constructor(page: Page) {
-    this.root = page
-      .locator('div')
-      .filter({ has: page.getByRole('textbox', { name: /Search notes|In "/i }).first() })
-      .filter({ has: page.getByText(/^Found:\s+\d+\s+note/) })
-      .last();
+    this.root = page.getByTestId('search-results-panel');
     this.foundNotesText = this.root.getByText(/^Found:\s+\d+\s+note/).first();
     this.searchDurationText = this.root.getByText(/^\d+ms$/).first();
-    this.resultCards = this.root.locator('[data-testid="note-card"], article');
+    this.resultCards = this.root.getByTestId('note-card');
     this.highlightedFragments = this.root.locator('mark');
   }
 

@@ -120,7 +120,7 @@ test.describe('notes search', () => {
         'Clear tags button should be visible after applying full-text tag filter',
       ).toBeVisible();
       await expect(
-        leftPanel.searchControls.searchTriggerInTagScope,
+        leftPanel.searchControls.searchTrigger,
         'Search trigger should reflect active full-text tag filter',
       ).toContainText(filterTag);
       await expect(
@@ -152,7 +152,7 @@ test.describe('notes search', () => {
         'Tag filter should remain active after clearing only long query text',
       ).toBeVisible();
       await expect(
-        leftPanel.searchControls.searchTriggerInTagScope,
+        leftPanel.searchControls.searchTrigger,
         'Search trigger should continue showing active tag scope after clearing text query',
       ).toContainText(filterTag);
       await expect(

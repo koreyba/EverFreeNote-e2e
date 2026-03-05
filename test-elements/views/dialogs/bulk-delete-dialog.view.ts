@@ -11,11 +11,11 @@ export class BulkDeleteDialog {
   readonly cancelButton: Locator;
 
   constructor(page: Page) {
-    this.dialog = page.getByRole('alertdialog', { name: 'Delete selected notes' });
+    this.dialog = page.getByTestId('bulk-delete-dialog');
     this.titleHeading = this.dialog.getByRole('heading', { name: 'Delete selected notes' });
-    this.confirmationInput = this.dialog.getByRole('spinbutton');
-    this.confirmButton = this.dialog.getByRole('button', { name: 'Delete' });
-    this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
+    this.confirmationInput = page.getByTestId('bulk-delete-confirm-input');
+    this.confirmButton = page.getByTestId('bulk-delete-confirm');
+    this.cancelButton = page.getByTestId('bulk-delete-cancel');
   }
 
   async fillCount(count: number) {

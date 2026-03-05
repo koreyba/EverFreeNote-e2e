@@ -24,9 +24,9 @@ export class LeftPanel {
     this.page = page;
     this.newNoteButton = page.getByRole('button', { name: 'New Note' });
     this.selectNotesButton = page.getByRole('button', { name: /Select Notes/i });
-    this.exitSelectionButton = page.getByRole('button', { name: 'Exit selection' });
-    this.selectedNotesCounter = page.getByText(/^\d+\s+selected$/);
-    this.deleteSelectedButton = page.getByRole('button', { name: /Delete \(\d+\)|Delete selected/i });
+    this.exitSelectionButton = page.getByTestId('selection-mode-cancel');
+    this.selectedNotesCounter = page.getByTestId('selection-mode-count');
+    this.deleteSelectedButton = page.getByTestId('selection-mode-delete');
     this.accountMenu = new AccountMenu(page);
     this.searchControls = new SearchControls(page);
     this.fullTextSearchResults = new FullTextSearchResults(page);
