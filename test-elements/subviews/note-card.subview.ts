@@ -27,7 +27,8 @@ export class NoteCard {
   }
 
   async select() {
-    await this.checkbox.click({ force: true });
+    await this.root.scrollIntoViewIfNeeded();
+    await this.checkbox.dispatchEvent('click');
   }
 
   async clickTag(tagText: string) {
