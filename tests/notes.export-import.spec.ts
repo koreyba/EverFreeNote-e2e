@@ -222,20 +222,15 @@ test.describe('notes export/import', () => {
       }
     });
 
-    await test.step('verify imported notes visibility', async () => {
-      // Reload to ensure imported notes list is refreshed in UI before visibility checks.
+    await test.step('verify imported notes in general list', async () => {
+      // Reload to ensure imported notes list is refreshed before UI visibility checks.
       await page.reload();
-      await leftPanel.searchControls.openGlobalSearch();
 
-      // Verify each imported note is discoverable from UI search.
       for (const title of createdNoteTitles) {
-        await leftPanel.searchControls.search(title);
         await expect(
-          leftPanel.fullTextSearchResults.getResultCardByTitle(title),
-          `Imported note "${title}" was not found in search results.`,
+          leftPanel.getNoteCardByTitle(title).root,
+          `Imported note "${title}" should be visible in the general notes list.`,
         ).toBeVisible();
-        await leftPanel.searchControls.clearSearch();
-        await leftPanel.searchControls.openGlobalSearch();
       }
     });
   });

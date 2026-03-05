@@ -15,7 +15,7 @@ export class NoteCard {
     this.titleHeading = root.getByRole('heading', { level: 3 });
     this.bodyParagraph = root.locator('p').first();
     this.dateParagraph = root.locator('p').nth(1);
-    this.checkbox = root.getByRole('checkbox');
+    this.checkbox = root.getByRole('checkbox', { includeHidden: true });
   }
 
   getTagChipByText(tagText: string) {
@@ -27,7 +27,6 @@ export class NoteCard {
   }
 
   async select() {
-    await this.root.hover();
     await this.checkbox.click({ force: true });
   }
 

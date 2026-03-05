@@ -12,10 +12,7 @@ export class SearchControls {
   readonly pressEnterHint: Locator;
 
   constructor(page: Page) {
-    this.searchTrigger = page
-      .getByTestId('sidebar-container')
-      .getByText(/Search (notes|in ".*" notes)\.\.\./)
-      .first();
+    this.searchTrigger = page.getByTestId('sidebar-search-trigger');
     this.searchInput = page.getByTestId('search-panel-input');
     this.clearSearchButton = page.getByTestId('search-panel-clear');
     this.clearTagsButton = page.getByTestId('search-panel-clear-tag');
