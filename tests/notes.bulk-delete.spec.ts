@@ -46,7 +46,10 @@ test.describe('notes bulk delete', () => {
       for (const title of createdNoteTitles) {
         const noteCard = leftPanel.getNoteCardByTitle(title);
         await noteCard.select();
-        await expect(noteCard.checkbox, `Checkbox for note "${title}" should be checked`).toBeChecked();
+        await expect(
+          noteCard.checkbox,
+          `Checkbox for note "${title}" should be checked`,
+        ).toBeChecked();
       }
     });
 
