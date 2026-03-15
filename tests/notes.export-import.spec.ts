@@ -7,6 +7,7 @@ import {
 import type { Note } from '../test-api/notes.types';
 
 const NOTES_TO_CREATE = 3;
+const SETTINGS_ROUTE_PATTERN = /\/settings\/?(?:\?tab=[\w-]+)?$/;
 
 let createdNoteIds: string[] = [];
 let createdNoteTitles: string[] = [];
@@ -50,6 +51,7 @@ test.describe('notes export/import', () => {
     page,
     notesApi,
     leftPanel,
+    settingsView,
     exportNotesDialog,
     exportCompletedDialog,
     importCompletedDialog,
@@ -59,9 +61,27 @@ test.describe('notes export/import', () => {
     let downloadedFilePath: string;
 
     await test.step('export notes', async () => {
-      // Open export flow and select only notes created in this test run.
-      await leftPanel.accountMenu.open();
-      await leftPanel.accountMenu.clickExportEnex();
+      // Open settings route, switch to export tab, and select only notes created in this test run.
+      await leftPanel.accountMenu.openSettings();
+      await expect(
+        settingsView.heading,
+        'Settings page heading should be visible after opening settings from the sidebar footer',
+      ).toBeVisible();
+      await expect(
+        page,
+        'Opening settings from the sidebar footer should navigate to the dedicated /settings route',
+      ).toHaveURL(SETTINGS_ROUTE_PATTERN);
+
+      await settingsView.openTab('Export .enex file');
+      await expect(
+        settingsView.tabHeading,
+        'Settings page should show the export tab heading after selecting export',
+      ).toHaveText('Export .enex file');
+      await expect(
+        settingsView.getPrimaryActionButton('Export .enex file'),
+        'Export tab should expose the primary export action button',
+      ).toBeVisible();
+      await settingsView.getPrimaryActionButton('Export .enex file').click();
 
       await expect(
         exportNotesDialog.dialog,
@@ -70,6 +90,10 @@ test.describe('notes export/import', () => {
       await expect(
         exportNotesDialog.titleHeading,
         'Export notes dialog title should be visible',
+      ).toBeVisible();
+      await expect(
+        exportNotesDialog.searchInput,
+        'Export notes dialog should expose the notes search field on the new settings flow',
       ).toBeVisible();
 
       for (const title of createdNoteTitles) {
@@ -119,6 +143,10 @@ test.describe('notes export/import', () => {
         exportCompletedDialog.dialog,
         'Export completed dialog should be hidden after closing it',
       ).toBeHidden();
+      await expect(
+        page,
+        'Closing the export completion dialog should keep the user on the settings route',
+      ).toHaveURL(SETTINGS_ROUTE_PATTERN);
     });
 
     await test.step('delete exported notes', async () => {
@@ -131,6 +159,11 @@ test.describe('notes export/import', () => {
         ).toBe(200);
       }
 
+      await settingsView.goBackToWorkspace();
+      await expect(
+        page,
+        'Back button on the settings page should return the user to the notes workspace',
+      ).toHaveURL(/\/$/);
       await page.reload();
 
       for (const title of createdNoteTitles) {
@@ -143,8 +176,21 @@ test.describe('notes export/import', () => {
 
     await test.step('import notes', async () => {
       // Import the same exported file using the "Skip duplicate notes" strategy.
-      await leftPanel.accountMenu.open();
-      await leftPanel.accountMenu.clickImportEnex();
+      await leftPanel.accountMenu.openSettings();
+      await expect(
+        page,
+        'Reopening settings for import should navigate back to the settings route',
+      ).toHaveURL(SETTINGS_ROUTE_PATTERN);
+      await settingsView.openTab('Import .enex file');
+      await expect(
+        settingsView.tabHeading,
+        'Settings page should show the import tab heading after selecting import',
+      ).toHaveText('Import .enex file');
+      await expect(
+        settingsView.getPrimaryActionButton('Import .enex file'),
+        'Import tab should expose the primary import action button',
+      ).toBeVisible();
+      await settingsView.getPrimaryActionButton('Import .enex file').click();
 
       // Ensure import dialog is opened before interacting with import controls.
       await expect(
@@ -160,13 +206,10 @@ test.describe('notes export/import', () => {
       await expect(
         importNotesDialog.skipDuplicateNotesRadio,
         '"Skip duplicate notes" option should be selected before import',
-      ).toBeChecked();
+      ).toHaveAttribute('aria-checked', 'true');
 
-      // Trigger native file chooser and provide the downloaded ENEX file path.
-      const fileChooserPromise = page.waitForEvent('filechooser');
-      await importNotesDialog.clickChooseFile();
-      const fileChooser = await fileChooserPromise;
-      await fileChooser.setFiles(downloadedFilePath);
+      // Provide the exported ENEX file directly into the hidden file input inside the new import dialog.
+      await importNotesDialog.setFiles(downloadedFilePath);
 
       // Import button should become enabled only after a valid ENEX file is selected.
       await expect(
@@ -201,6 +244,10 @@ test.describe('notes export/import', () => {
         importCompletedDialog.dialog,
         'Import completed dialog should be hidden after closing it',
       ).toBeHidden();
+      await expect(
+        page,
+        'Closing the import completion dialog should keep the user on the settings route until the user exits it',
+      ).toHaveURL(SETTINGS_ROUTE_PATTERN);
     });
 
     await test.step('verify imported notes content', async () => {
@@ -223,8 +270,12 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('verify imported notes in general list', async () => {
-      // Reload to ensure imported notes list is refreshed before UI visibility checks.
-      await page.reload();
+      // Return from settings and verify imported notes appear without a manual page refresh.
+      await settingsView.goBackToWorkspace();
+      await expect(
+        page,
+        'Back button should return from settings to the notes workspace after import',
+      ).toHaveURL(/\/$/);
 
       for (const title of createdNoteTitles) {
         await expect(
