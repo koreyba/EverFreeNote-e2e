@@ -8,11 +8,13 @@ import { ImportNotesDialog } from '../views/dialogs/import-notes-dialog.view';
 import { EditView } from '../views/edit.view';
 import { LeftPanel } from '../views/left-panel.view';
 import { ReadView } from '../views/read.view';
+import { SettingsView } from '../views/settings.view';
 
 type NotesPageObjectsFixtures = {
   leftPanel: LeftPanel;
   editView: EditView;
   readView: ReadView;
+  settingsView: SettingsView;
 };
 
 type DialogPageObjectsFixtures = {
@@ -30,6 +32,7 @@ export const test = apiTest.extend<PageObjectsFixtures>({
   leftPanel: async ({ page }, use) => use(new LeftPanel(page)),
   editView: async ({ page }, use) => use(new EditView(page)),
   readView: async ({ page }, use) => use(new ReadView(page)),
+  settingsView: async ({ page }, use) => use(new SettingsView(page)),
   bulkDeleteDialog: async ({ page }, use) => use(new BulkDeleteDialog(page)),
   deleteDialog: async ({ page }, use) => use(new DeleteDialog(page)),
   exportNotesDialog: async ({ page }, use) => use(new ExportNotesDialog(page)),
