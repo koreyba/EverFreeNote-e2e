@@ -6,6 +6,7 @@ import {
 } from '../test-utils/auth-state';
 
 const EXPIRY_SAFETY_WINDOW_SECONDS = 5 * 60;
+const AUTH_STORAGE_KEY_PREFIX = 'everfreenote-auth-';
 
 /** Cookie structure used in Playwright storage state. */
 type StorageStateCookie = {
@@ -22,16 +23,16 @@ type StorageStateCookie = {
 /** Minimal storage state shape required for auth cookie operations. */
 type StorageState = {
   cookies?: StorageStateCookie[];
-  origins?: unknown[];
 };
 
-/** Decoded Supabase JWT session extracted from the auth cookie. */
+/** Decoded Supabase JWT session extracted from Playwright storage state. */
 type SupabaseSession = {
   access_token: string;
   token_type: string;
   refresh_token?: string;
   expires_at?: number;
   expires_in?: number;
+  [key: string]: unknown;
 };
 
 type JwtPayload = {
@@ -45,13 +46,14 @@ type RefreshTokenResponse = {
   refresh_token?: string;
   expires_at?: number;
   expires_in?: number;
+  [key: string]: unknown;
 };
 
 type EnsureSessionOptions = {
   forceRefresh?: boolean;
 };
 
-/** Decodes a Base64-URL encoded string (used in JWTs and Supabase cookies). */
+/** Decodes a Base64-URL encoded string (used in JWTs and auth cookies). */
 const decodeBase64Url = (input: string) => {
   let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
   const pad = base64.length % 4;
@@ -70,9 +72,8 @@ const encodeBase64Url = (input: string) => {
     .replace(/=+$/, '');
 };
 
-/** Matches Supabase auth token cookies, including chunked variants (.0, .1, ...). */
-const isSupabaseAuthTokenCookie = (cookieName: string) =>
-  /^sb-.+-auth-token(\.\d+)?$/.test(cookieName);
+/** Matches the current app auth cookie name saved by the web client. */
+const isAppAuthCookie = (cookieName: string) => cookieName.startsWith(AUTH_STORAGE_KEY_PREFIX);
 
 /** Reads and parses Playwright storage state from disk. */
 const readStorageState = (storagePath = AUTH_STORAGE_STATE_PATH): StorageState => {
@@ -91,11 +92,9 @@ const writeStorageState = (state: StorageState, storagePath = AUTH_STORAGE_STATE
   fs.renameSync(tempPath, storagePath);
 };
 
-/** Returns the single Supabase auth cookie, enforcing strict cardinality. */
+/** Returns the single app auth cookie, enforcing strict cardinality. */
 const getAuthCookie = (state: StorageState): StorageStateCookie => {
-  const authCookies = (state.cookies ?? []).filter((cookie) =>
-    isSupabaseAuthTokenCookie(cookie.name),
-  );
+  const authCookies = (state.cookies ?? []).filter((cookie) => isAppAuthCookie(cookie.name));
 
   if (authCookies.length === 0) {
     throw new Error('Supabase auth cookie not found in storage state.');
@@ -104,7 +103,7 @@ const getAuthCookie = (state: StorageState): StorageStateCookie => {
   if (authCookies.length > 1) {
     throw new Error(
       `Expected one Supabase auth cookie, found ${authCookies.length}. ` +
-        'Provide a single auth cookie in storage state.',
+        'Provide a single EverFreeNote auth cookie in storage state.',
     );
   }
 
@@ -253,6 +252,8 @@ const refreshSession = async (session: SupabaseSession): Promise<SupabaseSession
     }
 
     return {
+      ...session,
+      ...refreshed,
       access_token: refreshed.access_token,
       token_type: refreshed.token_type ?? session.token_type,
       refresh_token: refreshed.refresh_token ?? session.refresh_token,
