@@ -9,6 +9,8 @@ export class ReadView {
   readonly deleteButton: Locator;
   readonly deleteIndexButton: Locator;
   readonly editButton: Locator;
+  readonly moreActionsButton: Locator;
+  readonly shareNoteMenuItem: Locator;
   readonly addTagButton: Locator;
   readonly tagInput: Locator;
   readonly removeTagButtons: Locator;
@@ -16,11 +18,13 @@ export class ReadView {
   readonly readingHeading: Locator;
 
   constructor(page: Page) {
-    this.noteText = page.locator('.note-content > p');
+    this.noteText = page.locator('.note-content');
     this.editorContainer = page.getByTestId('editor-container');
     this.deleteButton = page.locator('[data-cy="note-delete-button"]');
     this.deleteIndexButton = page.locator('[data-cy="note-delete-index-button"]');
     this.editButton = page.getByRole('button', { name: 'Edit' });
+    this.moreActionsButton = page.getByRole('button', { name: 'More actions' });
+    this.shareNoteMenuItem = page.getByRole('menuitem', { name: 'Share note' });
     this.addTagButton = page.getByRole('button', { name: 'Add tag' });
     this.tagInput = page.getByPlaceholder('work, personal, ideas');
     this.removeTagButtons = this.editorContainer.getByRole('button', { name: /remove/i });
@@ -34,5 +38,10 @@ export class ReadView {
 
   async deleteNote() {
     await this.deleteButton.click();
+  }
+
+  async openShareDialog() {
+    await this.moreActionsButton.click();
+    await this.shareNoteMenuItem.click();
   }
 }
