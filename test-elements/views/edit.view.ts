@@ -4,6 +4,7 @@ import type { Locator, Page } from '@playwright/test';
  * Right panel in Editing mode (after clicking "New Note").
  */
 export class EditView {
+  readonly editorContainer: Locator;
   readonly noteTitleInput: Locator;
   readonly noteContentArea: Locator;
   readonly tiptapEditor: Locator;
@@ -11,11 +12,12 @@ export class EditView {
   readonly readButton: Locator;
 
   constructor(page: Page) {
-    this.noteTitleInput = page.getByRole('textbox', { name: 'Note title' });
-    this.noteContentArea = page.locator('.note-content');
-    this.tiptapEditor = page.locator('.tiptap');
-    this.saveButton = page.getByRole('button', { name: 'Save' });
-    this.readButton = page.getByRole('button', { name: 'Read' });
+    this.editorContainer = page.getByTestId('editor-container');
+    this.noteTitleInput = this.editorContainer.getByRole('textbox', { name: 'Note title' });
+    this.noteContentArea = this.editorContainer.locator('.note-content');
+    this.tiptapEditor = this.editorContainer.locator('.tiptap');
+    this.saveButton = this.editorContainer.getByRole('button', { name: 'Save' });
+    this.readButton = this.editorContainer.getByRole('button', { name: 'Read' });
   }
 
   async fillNote(title: string, body: string) {
