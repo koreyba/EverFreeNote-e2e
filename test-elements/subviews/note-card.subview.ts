@@ -26,6 +26,10 @@ export class NoteCard {
     await this.root.click();
   }
 
+  async open() {
+    await this.titleHeading.click();
+  }
+
   async select() {
     await this.root.scrollIntoViewIfNeeded();
     await this.checkbox.dispatchEvent('click');

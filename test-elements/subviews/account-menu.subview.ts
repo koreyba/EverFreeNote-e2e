@@ -15,4 +15,8 @@ export class AccountMenu {
   async openSettings() {
     await this.openSettingsPageButton.click();
   }
+
+  async signOut() {
+    await this.signOutButton.click();
+  }
 }
