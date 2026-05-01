@@ -26,10 +26,27 @@ SUPABASE_FUNCTIONS_URL=https://...      # optional, resolved from JWT by default
 
 ```bash
 npm test                 # all browsers
+npm run test:allure      # all browsers + generate Allure report
 npm run test:chromium    # chromium only
 npm run test:headed      # with browser UI
 npm run test:ui          # interactive Playwright UI
 npm run test:report      # open last HTML report
+npm run allure:generate  # build Allure HTML from allure-results/e2e
+npm run allure:open      # serve generated Allure report locally
+```
+
+## Reports
+
+Playwright now writes three report outputs in parallel:
+
+- HTML report in `playwright-report/`
+- JSON report in `results.json`
+- Allure raw results in `allure-results/e2e/`
+
+Generate the Allure Report v3 HTML output into `allure-report/e2e/` with:
+
+```bash
+npm run allure:generate
 ```
 
 ## Project Structure
