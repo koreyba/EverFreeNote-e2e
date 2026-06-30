@@ -21,10 +21,7 @@ test.describe('notes sharing', () => {
       tags: noteTags,
     });
 
-    expect(
-      createdNote.status,
-      'API should create a note for the share-link scenario',
-    ).toBe(200);
+    expect(createdNote.status, 'API should create a note for the share-link scenario').toBe(200);
     createdNoteId = createdNote.data.note.id;
 
     await page.goto('/');

@@ -23,7 +23,9 @@ export class SettingsView {
   }
 
   getPrimaryActionButton(label: string) {
-    return this.page.locator('button:visible').filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) });
+    return this.page
+      .locator('button:visible')
+      .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) });
   }
 
   async openTab(label: string) {

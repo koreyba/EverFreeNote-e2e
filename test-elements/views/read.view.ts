@@ -22,7 +22,7 @@ export class ReadView {
     this.editorContainer = page.getByTestId('editor-container');
     this.deleteButton = page.locator('[data-cy="note-delete-button"]');
     this.deleteIndexButton = page.locator('[data-cy="note-delete-index-button"]');
-    this.editButton = page.getByRole('button', { name: 'Edit' });
+    this.editButton = this.editorContainer.getByRole('button', { name: 'Edit', exact: true });
     this.moreActionsButton = page.getByRole('button', { name: 'More actions' });
     this.shareNoteMenuItem = page.getByRole('menuitem', { name: 'Share note' });
     this.addTagButton = page.getByRole('button', { name: 'Add tag' });
