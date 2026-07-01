@@ -177,13 +177,13 @@ async function setupWebKitClipboardMock(page: Page): Promise<void> {
           }
         }
         (
-          window as typeof window & {
+          globalThis as typeof globalThis & {
             __mockClipboardHtml?: string;
             __mockClipboardText?: string;
           }
         ).__mockClipboardHtml = mockHtml;
         (
-          window as typeof window & {
+          globalThis as typeof globalThis & {
             __mockClipboardHtml?: string;
             __mockClipboardText?: string;
           }
@@ -193,7 +193,7 @@ async function setupWebKitClipboardMock(page: Page): Promise<void> {
       navigator.clipboard.writeText = async (text) => {
         mockText = text;
         (
-          window as typeof window & {
+          globalThis as typeof globalThis & {
             __mockClipboardHtml?: string;
             __mockClipboardText?: string;
           }
@@ -216,14 +216,14 @@ async function pasteContent(page: Page, browserName: string): Promise<void> {
         const dataTransfer = new DataTransfer();
         const html =
           (
-            window as typeof window & {
+            globalThis as typeof globalThis & {
               __mockClipboardHtml?: string;
               __mockClipboardText?: string;
             }
           ).__mockClipboardHtml || '';
         const text =
           (
-            window as typeof window & {
+            globalThis as typeof globalThis & {
               __mockClipboardHtml?: string;
               __mockClipboardText?: string;
             }
