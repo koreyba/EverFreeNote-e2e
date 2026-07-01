@@ -1,3 +1,4 @@
+import { Page } from '@playwright/test';
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.flow';
 
@@ -7,10 +8,15 @@ const modifier = isMac ? 'Meta' : 'Control';
 test.describe('notes copy and paste', () => {
   let createdNotes: string[] = [];
 
-  test.beforeEach(async ({ context, page }) => {
-    // Grant clipboard read and write permissions to the browser context (Chromium-specific).
+  test.beforeEach(async ({ context, page, browserName }) => {
+    // Grant clipboard read/write permissions for Chromium/Firefox.
     await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
-    await page.goto('/');
+
+    // WebKit-only workaround: mock clipboard to intercept copies since WebKit sandboxes E2E clipboard reads.
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (browserName === 'webkit') {
+      await setupWebKitClipboardMock(page);
+    }
   });
 
   test.afterEach(async ({ notesApi }) => {
@@ -19,7 +25,7 @@ test.describe('notes copy and paste', () => {
       try {
         await deleteNotesWithGivenTitleIfFound(notesApi, title);
       } catch {
-        // Best-effort cleanup to keep the test environment clean.
+        // Best-effort cleanup
       }
     }
     createdNotes = [];
@@ -31,6 +37,7 @@ test.describe('notes copy and paste', () => {
     editView,
     readView,
     page,
+    browserName,
   }) => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     const originalTitle = `Original Copy Test Note ${timestamp}`;
@@ -106,13 +113,17 @@ test.describe('notes copy and paste', () => {
         editView.noteTitleInput,
         'The Note title input field should be visible',
       ).toBeVisible();
+
+      // Wait for the editor to transition and clear the title input
+      await expect(editView.noteTitleInput, 'Wait for default draft title to clear').toHaveValue(
+        '',
+      );
+
+      await editView.noteTitleInput.click();
       await editView.noteTitleInput.fill(pastedTitle);
 
       await editView.noteContentArea.click();
-
-      // Paste using keyboard shortcut, selecting all default editor content first to overwrite the default empty paragraph
-      await page.keyboard.press(`${modifier}+a`);
-      await page.keyboard.press(`${modifier}+V`);
+      await pasteContent(page, browserName);
 
       await editView.save();
 
@@ -144,3 +155,93 @@ test.describe('notes copy and paste', () => {
     });
   });
 });
+
+/**
+ * WebKit clipboard mock setup to capture copy actions in E2E sandbox.
+ */
+async function setupWebKitClipboardMock(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    let mockHtml = '';
+    let mockText = '';
+
+    if (navigator.clipboard) {
+      navigator.clipboard.write = async (items) => {
+        for (const item of items) {
+          if (item.types.includes('text/html')) {
+            const blob = await item.getType('text/html');
+            mockHtml = await blob.text();
+          }
+          if (item.types.includes('text/plain')) {
+            const blob = await item.getType('text/plain');
+            mockText = await blob.text();
+          }
+        }
+        (
+          window as typeof window & {
+            __mockClipboardHtml?: string;
+            __mockClipboardText?: string;
+          }
+        ).__mockClipboardHtml = mockHtml;
+        (
+          window as typeof window & {
+            __mockClipboardHtml?: string;
+            __mockClipboardText?: string;
+          }
+        ).__mockClipboardText = mockText;
+      };
+
+      navigator.clipboard.writeText = async (text) => {
+        mockText = text;
+        (
+          window as typeof window & {
+            __mockClipboardHtml?: string;
+            __mockClipboardText?: string;
+          }
+        ).__mockClipboardText = text;
+      };
+    }
+  });
+}
+
+/**
+ * Helper to paste content into the note editor.
+ * Uses native shortcut for Chromium/Firefox, and synthetic paste event for WebKit.
+ */
+async function pasteContent(page: Page, browserName: string): Promise<void> {
+  // eslint-disable-next-line playwright/no-conditional-in-test
+  if (browserName === 'webkit') {
+    await page.evaluate(() => {
+      const el = document.querySelector('.tiptap') as HTMLElement;
+      if (el) {
+        const dataTransfer = new DataTransfer();
+        const html =
+          (
+            window as typeof window & {
+              __mockClipboardHtml?: string;
+              __mockClipboardText?: string;
+            }
+          ).__mockClipboardHtml || '';
+        const text =
+          (
+            window as typeof window & {
+              __mockClipboardHtml?: string;
+              __mockClipboardText?: string;
+            }
+          ).__mockClipboardText || '';
+
+        dataTransfer.setData('text/html', html);
+        dataTransfer.setData('text/plain', text);
+
+        const event = new ClipboardEvent('paste', {
+          clipboardData: dataTransfer,
+          bubbles: true,
+          cancelable: true,
+        });
+        el.dispatchEvent(event);
+      }
+    });
+  } else {
+    await page.keyboard.press(`${modifier}+a`);
+    await page.keyboard.press(`${modifier}+V`);
+  }
+}
