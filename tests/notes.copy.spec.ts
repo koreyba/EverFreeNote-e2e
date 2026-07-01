@@ -47,6 +47,7 @@ test.describe('notes copy and paste', () => {
     // custom font families, text alignment, and a numbered list.
     const richHtmlDescription =
       '<h1>Header formatting</h1>' +
+      '<p></p>' +
       '<p style="text-align: center;"><span style="font-size: 18px;"><span style="font-family: serif;">Serif text, size 18px, centered alignment</span></span></p>' +
       '<p style="text-align: right;"><span style="font-family: monospace;">Monospace text, standard size, right alignment</span></p>' +
       '<ol><li>First element of numbered list</li><li>Second element of numbered list</li></ol>' +
