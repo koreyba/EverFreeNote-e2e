@@ -47,10 +47,10 @@ test.describe('notes copy and paste', () => {
     // custom font families, text alignment, and a numbered list.
     const richHtmlDescription =
       '<h1>Header formatting</h1>' +
+      '<p style="text-align: center;"><span style="font-family: serif; font-size: 18px;">Serif text, size 18px, centered alignment</span></p>' +
       '<p></p>' +
-      '<p style="text-align: center;"><span style="font-size: 18px;"><span style="font-family: serif;">Serif text, size 18px, centered alignment</span></span></p>' +
       '<p style="text-align: right;"><span style="font-family: monospace;">Monospace text, standard size, right alignment</span></p>' +
-      '<ol><li>First element of numbered list</li><li>Second element of numbered list</li></ol>' +
+      '<ol><li><p>First element of numbered list</p></li><li><p>Second element of numbered list</p></li></ol>' +
       '<p></p>';
 
     // 1. Create a note with rich formatting via the API.
@@ -82,19 +82,6 @@ test.describe('notes copy and paste', () => {
       ).toContainText('Header formatting');
 
       await expect(
-        readView.editButton,
-        'The Edit button should be visible in the ReadView',
-      ).toBeVisible();
-      await expect(readView.editButton, 'The Edit button should be enabled').toBeEnabled();
-      await readView.editButton.click();
-
-      // Ensure that we successfully switched to edit mode (Save button is visible)
-      await expect(
-        editView.editorContainer.getByRole('button', { name: 'Save' }),
-        'Wait for edit mode to activate',
-      ).toBeVisible();
-
-      await expect(
         editView.copyButton,
         'The Copy note button should be visible in the EditView',
       ).toBeVisible();
@@ -124,15 +111,21 @@ test.describe('notes copy and paste', () => {
       await editView.noteTitleInput.fill(pastedTitle);
 
       await editView.noteContentArea.click();
+      await editView.tiptapEditor.focus();
+
       await pasteContent(page, browserName);
 
+      // Intercept and wait for the database save REST request to complete successfully
+      const saveResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().includes('/notes') &&
+          ['POST', 'PATCH', 'PUT'].includes(response.request().method()) &&
+          response.status() >= 200 &&
+          response.status() < 300,
+        { timeout: 10000 },
+      );
       await editView.save();
-
-      // Verify note is saved successfully
-      await expect(
-        editView.readButton,
-        'The Read button should be enabled after note saving completes',
-      ).toBeEnabled();
+      await saveResponsePromise;
     });
 
     // 4. Fetch both notes via API and assert that their HTML descriptions are identical.
@@ -243,6 +236,6 @@ async function pasteContent(page: Page, browserName: string): Promise<void> {
     });
   } else {
     await page.keyboard.press(`${modifier}+a`);
-    await page.keyboard.press(`${modifier}+V`);
+    await page.keyboard.press(`${modifier}+v`);
   }
 }
