@@ -10,6 +10,7 @@ export class EditView {
   readonly tiptapEditor: Locator;
   readonly saveButton: Locator;
   readonly readButton: Locator;
+  readonly copyButton: Locator;
 
   constructor(page: Page) {
     this.editorContainer = page.getByTestId('editor-container');
@@ -18,6 +19,7 @@ export class EditView {
     this.tiptapEditor = this.editorContainer.locator('.tiptap');
     this.saveButton = this.editorContainer.getByRole('button', { name: 'Save' });
     this.readButton = this.editorContainer.getByRole('button', { name: 'Read' });
+    this.copyButton = this.editorContainer.getByRole('button', { name: 'Copy note' });
   }
 
   async fillNote(title: string, body: string) {
