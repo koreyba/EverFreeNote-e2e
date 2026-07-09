@@ -32,14 +32,14 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: process.env.BASE_URL,
 
-    /* Collect trace for every test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on',
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
     
-    /* Capture screenshot for every test */
-    screenshot: 'on',
+    /* Capture screenshot only on failure */
+    screenshot: 'only-on-failure',
     
-    /* Record video for every test */
-    video: 'on',
+    /* Record video only on first retry */
+    video: 'on-first-retry',
 
     /* Reuse signed-in state */
     storageState: path.resolve(__dirname, 'playwright', '.auth', 'user.json'),
