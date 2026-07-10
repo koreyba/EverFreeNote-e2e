@@ -28,7 +28,9 @@ export class ReadView {
     this.addTagButton = page.getByRole('button', { name: 'Add tag' });
     this.tagInput = page.getByPlaceholder('work, personal, ideas');
     this.removeTagButtons = this.editorContainer.getByRole('button', { name: /remove/i });
-    this.emptyStateText = page.getByText('Select a note or create a new');
+    this.emptyStateText = page.getByText(
+      'Choose a note from the list or create a new one to start writing.',
+    );
     this.readingHeading = page.getByRole('heading', { name: 'Reading' });
   }
 
