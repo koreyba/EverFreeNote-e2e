@@ -60,9 +60,11 @@ test.describe('notes export/import', () => {
   }, testInfo) => {
     test.slow();
     let downloadedFilePath: string;
+    let download: any;
+    const a11yScans: { context: string; report: any }[] = [];
 
-    await test.step('export notes', async () => {
-      // Open settings route, switch to export tab, and select only notes created in this test run.
+    await test.step('open settings', async () => {
+      // Open settings route, switch to export tab.
       await leftPanel.accountMenu.openSettings();
       await expect(
         settingsView.heading,
@@ -72,13 +74,17 @@ test.describe('notes export/import', () => {
         page,
         'Opening settings from the sidebar footer should navigate to the dedicated /settings route',
       ).toHaveURL(SETTINGS_ROUTE_PATTERN);
+    });
 
+    await test.step('Accessibility scan: Settings Page', async () => {
       const a11ySettings = await analyzeA11y();
       if (a11ySettings.hasViolations()) {
-        await testInfo.attach('a11y-report-settings.txt', { body: a11ySettings.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-settings.md', { body: a11ySettings.format(), contentType: 'text/markdown' });
       }
-      expect(a11ySettings.criticalViolations.length, 'Settings page should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Settings Page', report: a11ySettings });
+    });
 
+    await test.step('open export notes dialog', async () => {
       await settingsView.openTab('Export .enex file');
       await expect(
         settingsView.tabHeading,
@@ -102,13 +108,17 @@ test.describe('notes export/import', () => {
         exportNotesDialog.searchInput,
         'Export notes dialog should expose the notes search field on the new settings flow',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Export Dialog', async () => {
       const a11yExportDialog = await analyzeA11y();
       if (a11yExportDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-export-dialog.txt', { body: a11yExportDialog.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-export-dialog.md', { body: a11yExportDialog.format(), contentType: 'text/markdown' });
       }
-      expect(a11yExportDialog.criticalViolations.length, 'Export dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Export Notes Dialog', report: a11yExportDialog });
+    });
 
+    await test.step('trigger export notes download', async () => {
       for (const title of createdNoteTitles) {
         await exportNotesDialog.checkNoteByTitle(title);
         await expect(
@@ -125,7 +135,7 @@ test.describe('notes export/import', () => {
       // Export selected notes and persist downloaded ENEX into the test output folder.
       const downloadPromise = page.waitForEvent('download');
       await exportNotesDialog.clickExport();
-      const download = await downloadPromise;
+      download = await downloadPromise;
 
       expect(
         await download.failure(),
@@ -143,13 +153,17 @@ test.describe('notes export/import', () => {
         exportCompletedDialog.readyMessage,
         'Export completed dialog should show ready message',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Export Completed Dialog', async () => {
       const a11yExportCompleted = await analyzeA11y();
       if (a11yExportCompleted.hasViolations()) {
-        await testInfo.attach('a11y-report-export-completed.txt', { body: a11yExportCompleted.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-export-completed.md', { body: a11yExportCompleted.format(), contentType: 'text/markdown' });
       }
-      expect(a11yExportCompleted.criticalViolations.length, 'Export completed dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Export Completed Dialog', report: a11yExportCompleted });
+    });
 
+    await test.step('save export download and close dialog', async () => {
       downloadedFilePath = testInfo.outputPath(download.suggestedFilename());
       await download.saveAs(downloadedFilePath);
       expect(
@@ -193,7 +207,7 @@ test.describe('notes export/import', () => {
       }
     });
 
-    await test.step('import notes', async () => {
+    await test.step('open import tab', async () => {
       // Import the same exported file using the "Skip duplicate notes" strategy.
       await leftPanel.accountMenu.openSettings();
       await expect(
@@ -209,13 +223,17 @@ test.describe('notes export/import', () => {
         settingsView.getPrimaryActionButton('Import .enex file'),
         'Import tab should expose the primary import action button',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Import Tab', async () => {
       const a11yImportTab = await analyzeA11y();
       if (a11yImportTab.hasViolations()) {
-        await testInfo.attach('a11y-report-import-tab.txt', { body: a11yImportTab.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-import-tab.md', { body: a11yImportTab.format(), contentType: 'text/markdown' });
       }
-      expect(a11yImportTab.criticalViolations.length, 'Import tab should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Import Tab', report: a11yImportTab });
+    });
 
+    await test.step('open import notes dialog', async () => {
       await settingsView.getPrimaryActionButton('Import .enex file').click();
 
       // Ensure import dialog is opened before interacting with import controls.
@@ -227,13 +245,17 @@ test.describe('notes export/import', () => {
         importNotesDialog.titleHeading,
         'Import notes dialog title should be visible',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Import Dialog', async () => {
       const a11yImportDialog = await analyzeA11y();
       if (a11yImportDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-import-dialog.txt', { body: a11yImportDialog.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-import-dialog.md', { body: a11yImportDialog.format(), contentType: 'text/markdown' });
       }
-      expect(a11yImportDialog.criticalViolations.length, 'Import dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Import Notes Dialog', report: a11yImportDialog });
+    });
 
+    await test.step('trigger import notes', async () => {
       // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
       await importNotesDialog.selectSkipDuplicates();
       await expect(
@@ -268,13 +290,17 @@ test.describe('notes export/import', () => {
         importCompletedDialog.readyMessage,
         'Import completed dialog should show ready message',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Import Completed Dialog', async () => {
       const a11yImportCompleted = await analyzeA11y();
       if (a11yImportCompleted.hasViolations()) {
-        await testInfo.attach('a11y-report-import-completed.txt', { body: a11yImportCompleted.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-import-completed.md', { body: a11yImportCompleted.format(), contentType: 'text/markdown' });
       }
-      expect(a11yImportCompleted.criticalViolations.length, 'Import completed dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Import Completed Dialog', report: a11yImportCompleted });
+    });
 
+    await test.step('close import completion dialog', async () => {
       await expect(
         importCompletedDialog.successfulCountText,
         'Import completed dialog should report the expected number of imported notes',
@@ -322,6 +348,15 @@ test.describe('notes export/import', () => {
           leftPanel.getNoteCardByTitle(title).root,
           `Imported note "${title}" should be visible in the general notes list.`,
         ).toBeVisible();
+      }
+    });
+
+    await test.step('Verify accessibility compliance', async () => {
+      for (const scan of a11yScans) {
+        expect(
+          scan.report.criticalViolations.length,
+          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
+        ).toBe(0);
       }
     });
   });

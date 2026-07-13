@@ -38,6 +38,8 @@ test.describe('notes bulk delete', () => {
     { notesApi, leftPanel, bulkDeleteDialog, analyzeA11y },
     testInfo,
   ) => {
+    const a11yScans: { context: string; report: any }[] = [];
+
     await test.step('select notes to delete', async () => {
       for (const title of createdNoteTitles) {
         await expect(
@@ -68,13 +70,17 @@ test.describe('notes bulk delete', () => {
         bulkDeleteDialog.titleHeading,
         'Bulk delete dialog title should be visible',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Bulk Delete Dialog', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-bulk-delete.txt', { body: a11y.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-bulk-delete.md', { body: a11y.format(), contentType: 'text/markdown' });
       }
-      expect(a11y.criticalViolations.length, 'Bulk delete dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Bulk Delete Dialog', report: a11y });
+    });
 
+    await test.step('confirm bulk deletion', async () => {
       await bulkDeleteDialog.fillCount(NOTES_TO_CREATE);
       await expect(
         bulkDeleteDialog.confirmButton,
@@ -98,6 +104,15 @@ test.describe('notes bulk delete', () => {
       for (const noteId of createdNoteIds) {
         const fetched = await notesApi.getNotes({ id: noteId });
         expect(fetched.status, `Note with ID ${noteId} should be deleted, but it's not`).toBe(404);
+      }
+    });
+
+    await test.step('Verify accessibility compliance', async () => {
+      for (const scan of a11yScans) {
+        expect(
+          scan.report.criticalViolations.length,
+          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
+        ).toBe(0);
       }
       needAPINotesCleanup = false;
     });

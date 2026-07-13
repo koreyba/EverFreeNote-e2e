@@ -49,6 +49,7 @@ test.describe('notes sharing', () => {
     analyzeA11y,
   }, testInfo) => {
     let publicLink = '';
+    const a11yScans: { context: string; report: any }[] = [];
 
     await test.step('open note created through API', async () => {
       const noteCard = leftPanel.getNoteCardByTitle(noteTitle);
@@ -94,13 +95,17 @@ test.describe('notes sharing', () => {
         shareNoteDialog.copyLinkButton,
         'Copy share link button should become enabled after link generation',
       ).toBeEnabled();
+    });
 
+    await test.step('Accessibility scan: Share Dialog', async () => {
       const a11yShareDialog = await analyzeA11y();
       if (a11yShareDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-share-dialog.txt', { body: a11yShareDialog.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-share-dialog.md', { body: a11yShareDialog.format(), contentType: 'text/markdown' });
       }
-      expect(a11yShareDialog.criticalViolations.length, 'Share dialog should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Share Dialog', report: a11yShareDialog });
+    });
 
+    await test.step('get public link', async () => {
       publicLink = await shareNoteDialog.getPublicLink();
       expect(publicLink, 'Generated public link should target the share page').toContain('/share/');
     });
@@ -146,18 +151,31 @@ test.describe('notes sharing', () => {
         guestPublicNoteView.noteContent,
         'Public note page should display the expected body excerpt',
       ).toContainText(noteBodyExcerpt);
+    });
 
+    await test.step('Accessibility scan: Public Shared Note View', async () => {
       const a11yPublicNote = await analyzeA11y({ page: guestPage });
       if (a11yPublicNote.hasViolations()) {
-        await testInfo.attach('a11y-report-public-note.txt', { body: a11yPublicNote.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-public-note.md', { body: a11yPublicNote.format(), contentType: 'text/markdown' });
       }
-      expect(a11yPublicNote.criticalViolations.length, 'Guest public note view should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Public Shared Note View', report: a11yPublicNote });
+    });
 
+    await test.step('verify tags on shared page', async () => {
       for (const tag of noteTags) {
         await expect(
           guestPublicNoteView.getTagBadge(tag),
           `Public note page should display tag "${tag}"`,
         ).toBeVisible();
+      }
+    });
+
+    await test.step('Verify accessibility compliance', async () => {
+      for (const scan of a11yScans) {
+        expect(
+          scan.report.criticalViolations.length,
+          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
+        ).toBe(0);
       }
     });
   });

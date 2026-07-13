@@ -72,6 +72,8 @@ test.describe('notes search', () => {
     { leftPanel, readView, analyzeA11y },
     testInfo,
   ) => {
+    const a11yScans: { context: string; report: any }[] = [];
+
     await test.step('perform full-text search', async () => {
       // Start with long-query mode (> 3 characters).
       await leftPanel.searchControls.openGlobalSearch();
@@ -86,12 +88,17 @@ test.describe('notes search', () => {
         leftPanel.fullTextSearchResults.foundNotesText,
         'Full-text results should report two found notes before tag filtering',
       ).toHaveText('Found: 2 notes');
+    });
 
+    await test.step('Accessibility scan: Search Panel', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-search.txt', { body: a11y.format(), contentType: 'text/plain' });
+        await testInfo.attach('a11y-report-search.md', { body: a11y.format(), contentType: 'text/markdown' });
       }
-      expect(a11y.criticalViolations.length, 'Search panel should have 0 critical a11y violations').toBe(0);
+      a11yScans.push({ context: 'Search Panel', report: a11y });
+    });
+
+    await test.step('verify search results content', async () => {
       await expect(
         leftPanel.fullTextSearchResults.searchDurationText,
         'Search duration should be shown in milliseconds',
@@ -184,6 +191,15 @@ test.describe('notes search', () => {
         readView.noteText,
         'Reading view should show body text from the opened full-text result note',
       ).toContainText(noteMatchedWithTagBodyText);
+    });
+
+    await test.step('Verify accessibility compliance', async () => {
+      for (const scan of a11yScans) {
+        expect(
+          scan.report.criticalViolations.length,
+          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
+        ).toBe(0);
+      }
     });
   });
 });
