@@ -46,19 +46,51 @@ export class A11yReport {
 
   format(): string {
     if (!this.hasViolations()) {
-      return 'No accessibility violations found.';
+      return '# ♿ Accessibility Audit\n\nNo accessibility violations found. 🎉';
     }
 
-    const violationSummary = this.allViolations
-      .map((violation, index) => {
-        const nodes = violation.nodes
-          .map((n) => `      - Target: ${n.target.join(', ')}\n        HTML: ${n.html}`)
-          .join('\n');
-        return `${index + 1}. [Impact: ${violation.impact}] ${violation.id} - ${violation.help}\n    Help URL: ${violation.helpUrl}\n    Violating Nodes:\n${nodes}`;
-      })
-      .join('\n\n');
+    const lines: string[] = [];
+    lines.push(`# ♿ Accessibility Audit Violations (Total Rules Failed: ${this.allViolations.length})`);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
 
-    return `Accessibility scan failed with ${this.allViolations.length} violations:\n\n${violationSummary}`;
+    this.allViolations.forEach((violation) => {
+      const severityEmoji = violation.impact === 'critical' || violation.impact === 'serious' ? '🛑' : '⚠️';
+      lines.push(`## ${severityEmoji} [${violation.id}] ${violation.help}`);
+      lines.push(`- **Severity**: ${violation.impact}`);
+      lines.push(`- **Description**: ${violation.description}`);
+      if (violation.helpUrl) {
+        lines.push(`- **Learn More**: [Deque University Link](${violation.helpUrl})`);
+      }
+      lines.push('');
+      lines.push('### Affected Elements:');
+      lines.push('');
+
+      violation.nodes.forEach((node, nodeIndex) => {
+        lines.push(`#### Element ${nodeIndex + 1}`);
+        lines.push(`- **Selector**: \`${node.target.join(' > ')}\``);
+        lines.push('- **HTML Snippet**:');
+        lines.push('  ```html');
+        lines.push(`  ${node.html}`);
+        lines.push('  ```');
+        if (node.failureSummary) {
+          lines.push('- **How to Fix**:');
+          lines.push('  > [!TIP]');
+          const formattedSummary = node.failureSummary
+            .split('\n')
+            .map((line) => `  > ${line}`)
+            .join('\n');
+          lines.push(formattedSummary);
+        }
+        lines.push('');
+      });
+
+      lines.push('---');
+      lines.push('');
+    });
+
+    return lines.join('\n');
   }
 }
 
