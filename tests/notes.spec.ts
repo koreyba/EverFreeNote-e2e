@@ -5,10 +5,16 @@ let createdNoteTitle = '';
 let shouldCleanupCreatedNote = true;
 
 test.describe('notes crud', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, analyzeA11y }, testInfo) => {
     shouldCleanupCreatedNote = true;
     createdNoteTitle = '';
     await page.goto('/');
+    
+    const a11y = await analyzeA11y();
+    if (a11y.hasViolations()) {
+      await testInfo.attach('a11y-report-landing.txt', { body: a11y.format(), contentType: 'text/plain' });
+    }
+    expect(a11y.criticalViolations.length, 'Landing page should have 0 critical a11y violations').toBe(0);
   });
 
   test.afterEach(async ({ notesApi }) => {
@@ -28,19 +34,26 @@ test.describe('notes crud', () => {
     editView,
     readView,
     deleteDialog,
-  }) => {
+    analyzeA11y,
+  }, testInfo) => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     createdNoteTitle = `Created by Playwright ${timestamp}`;
     const noteBodyText = `Text body ${timestamp}`;
-
+ 
     await test.step('create a new note', async () => {
       await leftPanel.clickNewNote();
       await editView.fillNote(createdNoteTitle, noteBodyText);
-
+ 
       await expect(
         editView.tiptapEditor,
         'Editor should contain entered note body text before save',
       ).toContainText(noteBodyText);
+ 
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-edit.txt', { body: a11y.format(), contentType: 'text/plain' });
+      }
+      expect(a11y.criticalViolations.length, 'Editor view should have 0 critical a11y violations').toBe(0);
 
       await editView.save();
     });
@@ -79,6 +92,12 @@ test.describe('notes crud', () => {
         noteCard.dateParagraph,
         "Top note card date should match today's date",
       ).toHaveText(date);
+
+      const a11yRead = await analyzeA11y();
+      if (a11yRead.hasViolations()) {
+        await testInfo.attach('a11y-report-read.txt', { body: a11yRead.format(), contentType: 'text/plain' });
+      }
+      expect(a11yRead.criticalViolations.length, 'Read view should have 0 critical a11y violations').toBe(0);
     });
 
     await test.step('delete the created note', async () => {
@@ -87,6 +106,12 @@ test.describe('notes crud', () => {
         deleteDialog.dialog,
         'Delete confirmation dialog should be visible after clicking delete',
       ).toBeVisible();
+
+      const a11yDelete = await analyzeA11y();
+      if (a11yDelete.hasViolations()) {
+        await testInfo.attach('a11y-report-delete.txt', { body: a11yDelete.format(), contentType: 'text/plain' });
+      }
+      expect(a11yDelete.criticalViolations.length, 'Delete dialog should have 0 critical a11y violations').toBe(0);
 
       await deleteDialog.confirm();
       await expect(

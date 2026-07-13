@@ -46,7 +46,8 @@ test.describe('notes sharing', () => {
     shareNoteDialog,
     guestLandingView,
     guestPublicNoteView,
-  }) => {
+    analyzeA11y,
+  }, testInfo) => {
     let publicLink = '';
 
     await test.step('open note created through API', async () => {
@@ -94,6 +95,12 @@ test.describe('notes sharing', () => {
         'Copy share link button should become enabled after link generation',
       ).toBeEnabled();
 
+      const a11yShareDialog = await analyzeA11y();
+      if (a11yShareDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-share-dialog.txt', { body: a11yShareDialog.format(), contentType: 'text/plain' });
+      }
+      expect(a11yShareDialog.criticalViolations.length, 'Share dialog should have 0 critical a11y violations').toBe(0);
+
       publicLink = await shareNoteDialog.getPublicLink();
       expect(publicLink, 'Generated public link should target the share page').toContain('/share/');
     });
@@ -139,6 +146,12 @@ test.describe('notes sharing', () => {
         guestPublicNoteView.noteContent,
         'Public note page should display the expected body excerpt',
       ).toContainText(noteBodyExcerpt);
+
+      const a11yPublicNote = await analyzeA11y({ page: guestPage });
+      if (a11yPublicNote.hasViolations()) {
+        await testInfo.attach('a11y-report-public-note.txt', { body: a11yPublicNote.format(), contentType: 'text/plain' });
+      }
+      expect(a11yPublicNote.criticalViolations.length, 'Guest public note view should have 0 critical a11y violations').toBe(0);
 
       for (const tag of noteTags) {
         await expect(

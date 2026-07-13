@@ -68,10 +68,10 @@ test.describe('notes search', () => {
     }
   });
 
-  test('long query search shows full-text results and supports tag filtering', async ({
-    leftPanel,
-    readView,
-  }) => {
+  test('long query search shows full-text results and supports tag filtering', async (
+    { leftPanel, readView, analyzeA11y },
+    testInfo,
+  ) => {
     await test.step('perform full-text search', async () => {
       // Start with long-query mode (> 3 characters).
       await leftPanel.searchControls.openGlobalSearch();
@@ -86,6 +86,12 @@ test.describe('notes search', () => {
         leftPanel.fullTextSearchResults.foundNotesText,
         'Full-text results should report two found notes before tag filtering',
       ).toHaveText('Found: 2 notes');
+
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-search.txt', { body: a11y.format(), contentType: 'text/plain' });
+      }
+      expect(a11y.criticalViolations.length, 'Search panel should have 0 critical a11y violations').toBe(0);
       await expect(
         leftPanel.fullTextSearchResults.searchDurationText,
         'Search duration should be shown in milliseconds',

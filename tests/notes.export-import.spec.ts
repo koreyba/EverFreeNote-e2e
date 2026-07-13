@@ -56,6 +56,7 @@ test.describe('notes export/import', () => {
     exportCompletedDialog,
     importCompletedDialog,
     importNotesDialog,
+    analyzeA11y,
   }, testInfo) => {
     test.slow();
     let downloadedFilePath: string;
@@ -71,6 +72,12 @@ test.describe('notes export/import', () => {
         page,
         'Opening settings from the sidebar footer should navigate to the dedicated /settings route',
       ).toHaveURL(SETTINGS_ROUTE_PATTERN);
+
+      const a11ySettings = await analyzeA11y();
+      if (a11ySettings.hasViolations()) {
+        await testInfo.attach('a11y-report-settings.txt', { body: a11ySettings.format(), contentType: 'text/plain' });
+      }
+      expect(a11ySettings.criticalViolations.length, 'Settings page should have 0 critical a11y violations').toBe(0);
 
       await settingsView.openTab('Export .enex file');
       await expect(
@@ -95,6 +102,12 @@ test.describe('notes export/import', () => {
         exportNotesDialog.searchInput,
         'Export notes dialog should expose the notes search field on the new settings flow',
       ).toBeVisible();
+
+      const a11yExportDialog = await analyzeA11y();
+      if (a11yExportDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-export-dialog.txt', { body: a11yExportDialog.format(), contentType: 'text/plain' });
+      }
+      expect(a11yExportDialog.criticalViolations.length, 'Export dialog should have 0 critical a11y violations').toBe(0);
 
       for (const title of createdNoteTitles) {
         await exportNotesDialog.checkNoteByTitle(title);
@@ -130,6 +143,12 @@ test.describe('notes export/import', () => {
         exportCompletedDialog.readyMessage,
         'Export completed dialog should show ready message',
       ).toBeVisible();
+
+      const a11yExportCompleted = await analyzeA11y();
+      if (a11yExportCompleted.hasViolations()) {
+        await testInfo.attach('a11y-report-export-completed.txt', { body: a11yExportCompleted.format(), contentType: 'text/plain' });
+      }
+      expect(a11yExportCompleted.criticalViolations.length, 'Export completed dialog should have 0 critical a11y violations').toBe(0);
 
       downloadedFilePath = testInfo.outputPath(download.suggestedFilename());
       await download.saveAs(downloadedFilePath);
@@ -190,6 +209,13 @@ test.describe('notes export/import', () => {
         settingsView.getPrimaryActionButton('Import .enex file'),
         'Import tab should expose the primary import action button',
       ).toBeVisible();
+
+      const a11yImportTab = await analyzeA11y();
+      if (a11yImportTab.hasViolations()) {
+        await testInfo.attach('a11y-report-import-tab.txt', { body: a11yImportTab.format(), contentType: 'text/plain' });
+      }
+      expect(a11yImportTab.criticalViolations.length, 'Import tab should have 0 critical a11y violations').toBe(0);
+
       await settingsView.getPrimaryActionButton('Import .enex file').click();
 
       // Ensure import dialog is opened before interacting with import controls.
@@ -201,6 +227,13 @@ test.describe('notes export/import', () => {
         importNotesDialog.titleHeading,
         'Import notes dialog title should be visible',
       ).toBeVisible();
+
+      const a11yImportDialog = await analyzeA11y();
+      if (a11yImportDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-import-dialog.txt', { body: a11yImportDialog.format(), contentType: 'text/plain' });
+      }
+      expect(a11yImportDialog.criticalViolations.length, 'Import dialog should have 0 critical a11y violations').toBe(0);
+
       // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
       await importNotesDialog.selectSkipDuplicates();
       await expect(
@@ -235,6 +268,13 @@ test.describe('notes export/import', () => {
         importCompletedDialog.readyMessage,
         'Import completed dialog should show ready message',
       ).toBeVisible();
+
+      const a11yImportCompleted = await analyzeA11y();
+      if (a11yImportCompleted.hasViolations()) {
+        await testInfo.attach('a11y-report-import-completed.txt', { body: a11yImportCompleted.format(), contentType: 'text/plain' });
+      }
+      expect(a11yImportCompleted.criticalViolations.length, 'Import completed dialog should have 0 critical a11y violations').toBe(0);
+
       await expect(
         importCompletedDialog.successfulCountText,
         'Import completed dialog should report the expected number of imported notes',

@@ -34,7 +34,10 @@ test.describe('notes bulk delete', () => {
     }
   });
 
-  test('bulk delete selected notes', async ({ notesApi, leftPanel, bulkDeleteDialog }) => {
+  test('bulk delete selected notes', async (
+    { notesApi, leftPanel, bulkDeleteDialog, analyzeA11y },
+    testInfo,
+  ) => {
     await test.step('select notes to delete', async () => {
       for (const title of createdNoteTitles) {
         await expect(
@@ -65,6 +68,13 @@ test.describe('notes bulk delete', () => {
         bulkDeleteDialog.titleHeading,
         'Bulk delete dialog title should be visible',
       ).toBeVisible();
+
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-bulk-delete.txt', { body: a11y.format(), contentType: 'text/plain' });
+      }
+      expect(a11y.criticalViolations.length, 'Bulk delete dialog should have 0 critical a11y violations').toBe(0);
+
       await bulkDeleteDialog.fillCount(NOTES_TO_CREATE);
       await expect(
         bulkDeleteDialog.confirmButton,

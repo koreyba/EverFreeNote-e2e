@@ -1,5 +1,5 @@
 import { test as apiTest } from './api.fixture';
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { DeleteDialog } from '../views/dialogs/delete-dialog.view';
 import { BulkDeleteDialog } from '../views/dialogs/bulk-delete-dialog.view';
 import { ExportCompletedDialog } from '../views/dialogs/export-completed-dialog.view';
@@ -13,6 +13,11 @@ import { LeftPanel } from '../views/left-panel.view';
 import { PublicNoteView } from '../views/public-note.view';
 import { ReadView } from '../views/read.view';
 import { SettingsView } from '../views/settings.view';
+import {
+  analyzeAccessibility,
+  AxeScanOptions,
+  A11yReport,
+} from '../../test-utils/a11y';
 
 type NotesPageObjectsFixtures = {
   guestPage: Page;
@@ -36,7 +41,14 @@ type DialogPageObjectsFixtures = {
   shareNoteDialog: ShareNoteDialog;
 };
 
-type PageObjectsFixtures = NotesPageObjectsFixtures & DialogPageObjectsFixtures;
+type A11yConfigOptions = {
+  defaultAxeTags: string[];
+  defaultAxeExclude: string[];
+};
+
+type PageObjectsFixtures = NotesPageObjectsFixtures & DialogPageObjectsFixtures & A11yConfigOptions & {
+  analyzeA11y: (options?: AxeScanOptions & { page?: Page }) => Promise<A11yReport>;
+};
 
 export const test = apiTest.extend<PageObjectsFixtures>({
   guestPage: async ({ browser, baseURL }, use) => {
@@ -64,6 +76,19 @@ export const test = apiTest.extend<PageObjectsFixtures>({
   importCompletedDialog: async ({ page }, use) => use(new ImportCompletedDialog(page)),
   importNotesDialog: async ({ page }, use) => use(new ImportNotesDialog(page)),
   shareNoteDialog: async ({ page }, use) => use(new ShareNoteDialog(page)),
+  defaultAxeTags: [['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'], { option: true }],
+  defaultAxeExclude: [[], { option: true }],
+  analyzeA11y: async ({ page, defaultAxeTags, defaultAxeExclude }, use) => {
+    await use(async (options = {}) => {
+      const targetPage = options.page || page;
+      const mergedOptions: AxeScanOptions = {
+        tags: options.tags || defaultAxeTags,
+        exclude: options.exclude || defaultAxeExclude,
+        include: options.include || [],
+      };
+      return analyzeAccessibility(targetPage, mergedOptions);
+    });
+  },
 });
 
 export { expect } from './api.fixture';
