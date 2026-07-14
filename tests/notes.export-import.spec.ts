@@ -79,6 +79,7 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Settings Page', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11ySettings = await analyzeA11y();
       if (a11ySettings.hasViolations()) {
         await testInfo.attach('a11y-report-settings.md', {
@@ -116,6 +117,11 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Export Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      await expect(
+        page.getByRole('button', { name: 'Select all' }),
+        'Select all button should be enabled after loading notes',
+      ).toBeEnabled();
       const a11yExportDialog = await analyzeA11y();
       if (a11yExportDialog.hasViolations()) {
         await testInfo.attach('a11y-report-export-dialog.md', {
@@ -237,6 +243,7 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Tab', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportTab = await analyzeA11y();
       if (a11yImportTab.hasViolations()) {
         await testInfo.attach('a11y-report-import-tab.md', {
@@ -262,6 +269,7 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportDialog = await analyzeA11y();
       if (a11yImportDialog.hasViolations()) {
         await testInfo.attach('a11y-report-import-dialog.md', {
@@ -310,6 +318,7 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Completed Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportCompleted = await analyzeA11y();
       if (a11yImportCompleted.hasViolations()) {
         await testInfo.attach('a11y-report-import-completed.md', {
