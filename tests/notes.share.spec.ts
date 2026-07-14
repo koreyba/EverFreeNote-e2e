@@ -77,8 +77,27 @@ test.describe('notes sharing', () => {
       }
     });
 
+    await test.step('open more actions menu', async () => {
+      await readView.moreActionsButton.click();
+      await expect(
+        readView.shareNoteMenuItem,
+        'Share note menu item should be visible after clicking more actions',
+      ).toBeVisible();
+    });
+
+    await test.step('Accessibility scan: More Actions Menu', async () => {
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-more-actions-menu.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+      }
+      a11yScans.push({ context: 'More Actions Menu', report: a11y });
+    });
+
     await test.step('create public share link', async () => {
-      await readView.openShareDialog();
+      await readView.shareNoteMenuItem.click();
 
       await expect(
         shareNoteDialog.dialog,
