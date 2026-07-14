@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import type { Download } from '@playwright/test';
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import {
   createNotesViaApi,
@@ -61,7 +62,7 @@ test.describe('notes export/import', () => {
   }, testInfo) => {
     test.slow();
     let downloadedFilePath: string;
-    let download: any;
+    let download: Download;
     const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('open settings', async () => {

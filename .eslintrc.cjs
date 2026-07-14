@@ -25,6 +25,9 @@ module.exports = {
     {
       files: ['tests/**/*.ts'],
       extends: ['plugin:playwright/recommended'],
+      rules: {
+        'playwright/no-conditional-in-test': 'off',
+      },
     },
   ],
 };

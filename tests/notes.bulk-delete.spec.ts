@@ -61,6 +61,17 @@ test.describe('notes bulk delete', () => {
       }
     });
 
+    await test.step('Accessibility scan: Selection Mode', async () => {
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-selection-mode.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+      }
+      a11yScans.push({ context: 'Selection Mode', report: a11y });
+    });
+
     await test.step('delete selected notes', async () => {
       await expect(
         leftPanel.deleteSelectedButton,

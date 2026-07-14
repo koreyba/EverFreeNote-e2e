@@ -1,5 +1,5 @@
 import { test as apiTest } from './api.fixture';
-import { expect, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { DeleteDialog } from '../views/dialogs/delete-dialog.view';
 import { BulkDeleteDialog } from '../views/dialogs/bulk-delete-dialog.view';
 import { ExportCompletedDialog } from '../views/dialogs/export-completed-dialog.view';
