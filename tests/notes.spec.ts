@@ -1,6 +1,6 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.flow';
-import { A11yReport } from '../test-utils/a11y';
+
 
 let createdNoteTitle = '';
 let shouldCleanupCreatedNote = true;
@@ -46,7 +46,6 @@ test.describe('notes crud', () => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     createdNoteTitle = `Created by Playwright ${timestamp}`;
     const noteBodyText = `Text body ${timestamp}`;
-    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('fill in new note details', async () => {
       await leftPanel.clickNewNote();
@@ -66,7 +65,10 @@ test.describe('notes crud', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Editor View', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Editor View" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('save the note', async () => {
@@ -117,7 +119,10 @@ test.describe('notes crud', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Read View', report: a11yRead });
+      expect.soft(
+        a11yRead.hasViolations(),
+        'Accessibility scan on "Read View" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open delete dialog', async () => {
@@ -136,7 +141,10 @@ test.describe('notes crud', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Delete Dialog', report: a11yDelete });
+      expect.soft(
+        a11yDelete.hasViolations(),
+        'Accessibility scan on "Delete Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('confirm note deletion', async () => {
@@ -149,25 +157,6 @@ test.describe('notes crud', () => {
       const deletedNote = leftPanel.getNoteCardByTitle(createdNoteTitle);
       await expect(deletedNote.root, 'Deleted note was found when not expected').toHaveCount(0);
       shouldCleanupCreatedNote = false;
-    });
-
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        if (scan.report.hasViolations()) {
-          await testInfo.attach(
-            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
-            {
-              body: scan.report.format(),
-              contentType: 'text/markdown',
-            },
-          );
-        }
-
-        expect(
-          scan.report.hasViolations(),
-          `Accessibility scan on "${scan.context}" should have no violations`,
-        ).toBe(false);
-      }
     });
   });
 });

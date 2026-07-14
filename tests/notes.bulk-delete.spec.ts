@@ -1,6 +1,6 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { createNotesViaApi } from '../test-api/flows/notes.api.flow';
-import { A11yReport } from '../test-utils/a11y';
+
 
 const NOTES_TO_CREATE = 3;
 
@@ -41,7 +41,6 @@ test.describe('notes bulk delete', () => {
     bulkDeleteDialog,
     analyzeA11y,
   }, testInfo) => {
-    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('select notes to delete', async () => {
       for (const title of createdNoteTitles) {
@@ -69,7 +68,10 @@ test.describe('notes bulk delete', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Selection Mode', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Selection Mode" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('delete selected notes', async () => {
@@ -94,7 +96,10 @@ test.describe('notes bulk delete', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Bulk Delete Dialog', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Bulk Delete Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('confirm bulk deletion', async () => {
@@ -122,25 +127,7 @@ test.describe('notes bulk delete', () => {
         const fetched = await notesApi.getNotes({ id: noteId });
         expect(fetched.status, `Note with ID ${noteId} should be deleted, but it's not`).toBe(404);
       }
-    });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        if (scan.report.hasViolations()) {
-          await testInfo.attach(
-            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
-            {
-              body: scan.report.format(),
-              contentType: 'text/markdown',
-            },
-          );
-        }
-
-        expect(
-          scan.report.hasViolations(),
-          `Accessibility scan on "${scan.context}" should have no violations`,
-        ).toBe(false);
-      }
       needAPINotesCleanup = false;
     });
   });

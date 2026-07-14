@@ -6,7 +6,7 @@ import {
   deleteNotesWithGivenTitleIfFound,
 } from '../test-api/flows/notes.api.flow';
 import type { Note } from '../test-api/notes.types';
-import { A11yReport } from '../test-utils/a11y';
+
 
 const NOTES_TO_CREATE = 3;
 const SETTINGS_ROUTE_PATTERN = /\/settings\/?(?:\?tab=[\w-]+)?$/;
@@ -63,7 +63,6 @@ test.describe('notes export/import', () => {
     test.slow();
     let downloadedFilePath: string;
     let download: Download;
-    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('open settings', async () => {
       // Open settings route, switch to export tab.
@@ -87,7 +86,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Settings Page', report: a11ySettings });
+      expect.soft(
+        a11ySettings.hasViolations(),
+        'Accessibility scan on "Settings Page" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open export notes dialog', async () => {
@@ -129,7 +131,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Export Notes Dialog', report: a11yExportDialog });
+      expect.soft(
+        a11yExportDialog.hasViolations(),
+        'Accessibility scan on "Export Notes Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('trigger export notes download', async () => {
@@ -177,7 +182,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Export Completed Dialog', report: a11yExportCompleted });
+      expect.soft(
+        a11yExportCompleted.hasViolations(),
+        'Accessibility scan on "Export Completed Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('save export download and close dialog', async () => {
@@ -251,7 +259,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Import Tab', report: a11yImportTab });
+      expect.soft(
+        a11yImportTab.hasViolations(),
+        'Accessibility scan on "Import Tab" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open import notes dialog', async () => {
@@ -277,7 +288,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Import Notes Dialog', report: a11yImportDialog });
+      expect.soft(
+        a11yImportDialog.hasViolations(),
+        'Accessibility scan on "Import Notes Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('trigger import notes', async () => {
@@ -326,7 +340,10 @@ test.describe('notes export/import', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Import Completed Dialog', report: a11yImportCompleted });
+      expect.soft(
+        a11yImportCompleted.hasViolations(),
+        'Accessibility scan on "Import Completed Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('close import completion dialog', async () => {
@@ -380,24 +397,6 @@ test.describe('notes export/import', () => {
       }
     });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        if (scan.report.hasViolations()) {
-          await testInfo.attach(
-            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
-            {
-              body: scan.report.format(),
-              contentType: 'text/markdown',
-            },
-          );
-        }
-
-        expect(
-          scan.report.hasViolations(),
-          `Accessibility scan on "${scan.context}" should have no violations`,
-        ).toBe(false);
-      }
-    });
   });
 });
 

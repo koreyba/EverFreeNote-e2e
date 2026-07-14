@@ -38,7 +38,7 @@ test.describe('settings accessibility audits', () => {
     ).toHaveText('WordPress settings');
 
     await expect(
-      page.getByRole('button', { name: 'Save settings' }),
+      settingsView.saveSettingsButton,
       'Save settings button should be enabled after loading settings',
     ).toBeEnabled();
 
@@ -68,7 +68,7 @@ test.describe('settings accessibility audits', () => {
     ).toHaveText('Indexing (RAG)');
 
     await expect(
-      page.getByRole('button', { name: 'Save API key' }),
+      settingsView.saveApiKeyButton,
       'Save API key button should be enabled after loading settings',
     ).toBeEnabled();
 
@@ -88,11 +88,12 @@ test.describe('settings accessibility audits', () => {
 
   test('audit AI Index tab accessibility', async ({
     page,
+    settingsView,
     analyzeA11y,
   }, testInfo) => {
     await page.goto('/settings/?tab=ai-index');
     await expect(
-      page.getByPlaceholder('Search notes...'),
+      settingsView.aiIndexSearchInput,
       'AI Index search input should be visible',
     ).toBeVisible();
 

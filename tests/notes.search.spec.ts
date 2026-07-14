@@ -1,6 +1,6 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import type { Note } from '../test-api/notes.types';
-import { A11yReport } from '../test-utils/a11y';
+
 
 const FULL_TEXT_QUERY_PREFIX = 'ftsq';
 
@@ -74,7 +74,6 @@ test.describe('notes search', () => {
     readView,
     analyzeA11y,
   }, testInfo) => {
-    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('perform full-text search', async () => {
       // Start with long-query mode (> 3 characters).
@@ -95,12 +94,15 @@ test.describe('notes search', () => {
     await test.step('Accessibility scan: Search Panel', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-search.md', {
+        await testInfo.attach('a11y-report-search-panel.md', {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Search Panel', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Search Panel" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('verify search results content', async () => {
@@ -198,23 +200,5 @@ test.describe('notes search', () => {
       ).toContainText(noteMatchedWithTagBodyText);
     });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        if (scan.report.hasViolations()) {
-          await testInfo.attach(
-            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
-            {
-              body: scan.report.format(),
-              contentType: 'text/markdown',
-            },
-          );
-        }
-
-        expect(
-          scan.report.hasViolations(),
-          `Accessibility scan on "${scan.context}" should have no violations`,
-        ).toBe(false);
-      }
-    });
   });
 });

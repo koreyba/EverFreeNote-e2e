@@ -33,7 +33,7 @@ let count = 0;
 allAttachments.forEach(att => {
   if (att.contentType === 'text/markdown' && att.body) {
     const decoded = Buffer.from(att.body, 'base64').toString('utf8');
-    const filename = att.name;
+    const filename = path.basename(att.name);
     const dest = path.join(reportsDir, filename);
     fs.writeFileSync(dest, decoded, 'utf8');
     console.log(`Extracted: ${filename}`);

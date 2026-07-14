@@ -1,5 +1,5 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
-import { A11yReport } from '../test-utils/a11y';
+
 
 let createdNoteId = '';
 let noteTitle = '';
@@ -50,7 +50,6 @@ test.describe('notes sharing', () => {
     analyzeA11y,
   }, testInfo) => {
     let publicLink = '';
-    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('open note created through API', async () => {
       const noteCard = leftPanel.getNoteCardByTitle(noteTitle);
@@ -93,7 +92,10 @@ test.describe('notes sharing', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'More Actions Menu', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "More Actions Menu" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('create public share link', async () => {
@@ -125,7 +127,10 @@ test.describe('notes sharing', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Share Dialog', report: a11yShareDialog });
+      expect.soft(
+        a11yShareDialog.hasViolations(),
+        'Accessibility scan on "Share Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('get public link', async () => {
@@ -184,7 +189,10 @@ test.describe('notes sharing', () => {
           contentType: 'text/markdown',
         });
       }
-      a11yScans.push({ context: 'Public Shared Note View', report: a11yPublicNote });
+      expect.soft(
+        a11yPublicNote.hasViolations(),
+        'Accessibility scan on "Public Shared Note View" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('verify tags on shared page', async () => {
@@ -196,23 +204,5 @@ test.describe('notes sharing', () => {
       }
     });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        if (scan.report.hasViolations()) {
-          await testInfo.attach(
-            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
-            {
-              body: scan.report.format(),
-              contentType: 'text/markdown',
-            },
-          );
-        }
-
-        expect(
-          scan.report.hasViolations(),
-          `Accessibility scan on "${scan.context}" should have no violations`,
-        ).toBe(false);
-      }
-    });
   });
 });
