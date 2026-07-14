@@ -179,10 +179,20 @@ test.describe('notes sharing', () => {
 
     await test.step('Verify accessibility compliance', async () => {
       for (const scan of a11yScans) {
+        if (scan.report.hasViolations()) {
+          await testInfo.attach(
+            `a11y-report-${scan.context.toLowerCase().replace(/\s+/g, '-')}.md`,
+            {
+              body: scan.report.format(),
+              contentType: 'text/markdown',
+            },
+          );
+        }
+
         expect(
-          scan.report.moderateViolations.length,
-          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
-        ).toBe(0);
+          scan.report.hasViolations(),
+          `Accessibility scan on "${scan.context}" should have no violations`,
+        ).toBe(false);
       }
     });
   });

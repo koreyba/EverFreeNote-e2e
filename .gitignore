@@ -10,3 +10,16 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 /.env
+
+/a11y-reports/a11y-report-delete.md
+/a11y-reports/a11y-report-edit.md
+/a11y-reports/a11y-report-editor-view.md
+/a11y-reports/a11y-report-import-completed.md
+/a11y-reports/a11y-report-landing.md
+/a11y-reports/a11y-report-read-view.md
+/a11y-reports/a11y-report-read.md
+/a11y-reports/a11y-report-search-panel.md
+/a11y-reports/a11y-report-search.md
+/a11y-reports/a11y-report-settings-page.md
+/a11y-reports/a11y-report-settings.md
+/a11y-reports/a11y-report-share-dialog.md

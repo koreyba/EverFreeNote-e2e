@@ -13,11 +13,7 @@ import { LeftPanel } from '../views/left-panel.view';
 import { PublicNoteView } from '../views/public-note.view';
 import { ReadView } from '../views/read.view';
 import { SettingsView } from '../views/settings.view';
-import {
-  analyzeAccessibility,
-  AxeScanOptions,
-  A11yReport,
-} from '../../test-utils/a11y';
+import { analyzeAccessibility, AxeScanOptions, A11yReport } from '../../test-utils/a11y';
 
 type NotesPageObjectsFixtures = {
   guestPage: Page;
@@ -46,11 +42,23 @@ type A11yConfigOptions = {
   defaultAxeExclude: string[];
 };
 
-type PageObjectsFixtures = NotesPageObjectsFixtures & DialogPageObjectsFixtures & A11yConfigOptions & {
-  analyzeA11y: (options?: AxeScanOptions & { page?: Page }) => Promise<A11yReport>;
+type PageObjectsFixtures = NotesPageObjectsFixtures &
+  DialogPageObjectsFixtures &
+  A11yConfigOptions & {
+    analyzeA11y: (options?: AxeScanOptions & { page?: Page }) => Promise<A11yReport>;
+  };
+
+const setThemeOnPage = async (page: Page) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('everfreenote-theme', 'dark');
+  });
 };
 
 export const test = apiTest.extend<PageObjectsFixtures>({
+  page: async ({ page }, use) => {
+    await setThemeOnPage(page);
+    await use(page);
+  },
   guestPage: async ({ browser, baseURL }, use) => {
     const context = await browser.newContext({
       baseURL,
@@ -58,6 +66,7 @@ export const test = apiTest.extend<PageObjectsFixtures>({
     });
     const page = await context.newPage();
 
+    await setThemeOnPage(page);
     await use(page);
     await context.close();
   },
