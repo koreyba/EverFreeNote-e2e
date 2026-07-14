@@ -1,4 +1,5 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
+import { A11yReport } from '../test-utils/a11y';
 
 let createdNoteId = '';
 let noteTitle = '';
