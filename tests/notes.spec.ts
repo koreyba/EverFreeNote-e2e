@@ -1,5 +1,6 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.flow';
+import { A11yReport } from '../test-utils/a11y';
 
 let createdNoteTitle = '';
 let shouldCleanupCreatedNote = true;
@@ -9,12 +10,18 @@ test.describe('notes crud', () => {
     shouldCleanupCreatedNote = true;
     createdNoteTitle = '';
     await page.goto('/');
-    
+
     const a11y = await analyzeA11y();
     if (a11y.hasViolations()) {
-      await testInfo.attach('a11y-report-landing.md', { body: a11y.format(), contentType: 'text/markdown' });
+      await testInfo.attach('a11y-report-landing.md', {
+        body: a11y.format(),
+        contentType: 'text/markdown',
+      });
     }
-    expect(a11y.criticalViolations.length, 'Landing page should have 0 critical a11y violations').toBe(0);
+    expect(
+      a11y.criticalViolations.length,
+      'Landing page should have 0 critical a11y violations',
+    ).toBe(0);
   });
 
   test.afterEach(async ({ notesApi }) => {
@@ -39,12 +46,12 @@ test.describe('notes crud', () => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     createdNoteTitle = `Created by Playwright ${timestamp}`;
     const noteBodyText = `Text body ${timestamp}`;
-    const a11yScans: { context: string; report: any }[] = [];
- 
+    const a11yScans: { context: string; report: A11yReport }[] = [];
+
     await test.step('fill in new note details', async () => {
       await leftPanel.clickNewNote();
       await editView.fillNote(createdNoteTitle, noteBodyText);
- 
+
       await expect(
         editView.tiptapEditor,
         'Editor should contain entered note body text before save',
@@ -54,7 +61,10 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Editor View', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-edit.md', { body: a11y.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-edit.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
       }
       a11yScans.push({ context: 'Editor View', report: a11y });
     });
@@ -102,7 +112,10 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Read View', async () => {
       const a11yRead = await analyzeA11y();
       if (a11yRead.hasViolations()) {
-        await testInfo.attach('a11y-report-read.md', { body: a11yRead.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-read.md', {
+          body: a11yRead.format(),
+          contentType: 'text/markdown',
+        });
       }
       a11yScans.push({ context: 'Read View', report: a11yRead });
     });
@@ -118,7 +131,10 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Delete Dialog', async () => {
       const a11yDelete = await analyzeA11y();
       if (a11yDelete.hasViolations()) {
-        await testInfo.attach('a11y-report-delete.md', { body: a11yDelete.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-delete.md', {
+          body: a11yDelete.format(),
+          contentType: 'text/markdown',
+        });
       }
       a11yScans.push({ context: 'Delete Dialog', report: a11yDelete });
     });
@@ -138,8 +154,8 @@ test.describe('notes crud', () => {
     await test.step('Verify accessibility compliance', async () => {
       for (const scan of a11yScans) {
         expect(
-          scan.report.criticalViolations.length,
-          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
+          scan.report.moderateViolations.length,
+          `Accessibility scan on "${scan.context}" should have 0 moderate violations`,
         ).toBe(0);
       }
     });

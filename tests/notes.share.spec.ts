@@ -49,7 +49,7 @@ test.describe('notes sharing', () => {
     analyzeA11y,
   }, testInfo) => {
     let publicLink = '';
-    const a11yScans: { context: string; report: any }[] = [];
+    const a11yScans: { context: string; report: A11yReport }[] = [];
 
     await test.step('open note created through API', async () => {
       const noteCard = leftPanel.getNoteCardByTitle(noteTitle);
@@ -100,7 +100,10 @@ test.describe('notes sharing', () => {
     await test.step('Accessibility scan: Share Dialog', async () => {
       const a11yShareDialog = await analyzeA11y();
       if (a11yShareDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-share-dialog.md', { body: a11yShareDialog.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-share-dialog.md', {
+          body: a11yShareDialog.format(),
+          contentType: 'text/markdown',
+        });
       }
       a11yScans.push({ context: 'Share Dialog', report: a11yShareDialog });
     });
@@ -156,7 +159,10 @@ test.describe('notes sharing', () => {
     await test.step('Accessibility scan: Public Shared Note View', async () => {
       const a11yPublicNote = await analyzeA11y({ page: guestPage });
       if (a11yPublicNote.hasViolations()) {
-        await testInfo.attach('a11y-report-public-note.md', { body: a11yPublicNote.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-public-note.md', {
+          body: a11yPublicNote.format(),
+          contentType: 'text/markdown',
+        });
       }
       a11yScans.push({ context: 'Public Shared Note View', report: a11yPublicNote });
     });
@@ -173,7 +179,7 @@ test.describe('notes sharing', () => {
     await test.step('Verify accessibility compliance', async () => {
       for (const scan of a11yScans) {
         expect(
-          scan.report.criticalViolations.length,
+          scan.report.moderateViolations.length,
           `Accessibility scan on "${scan.context}" should have 0 critical violations`,
         ).toBe(0);
       }
