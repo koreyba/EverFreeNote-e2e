@@ -169,7 +169,7 @@ export const analyzeAccessibility = async (
   page: Page,
   options: AxeScanOptions,
 ): Promise<A11yReport> => {
-  let builder = new AxeBuilder({ page });
+  let builder = new AxeBuilder({ page }).setLegacyMode(true);
 
   if (options.tags && options.tags.length > 0) {
     builder = builder.withTags(options.tags);

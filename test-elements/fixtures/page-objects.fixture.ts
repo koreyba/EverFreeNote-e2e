@@ -50,7 +50,7 @@ type PageObjectsFixtures = NotesPageObjectsFixtures &
 
 const setThemeOnPage = async (page: Page) => {
   await page.addInitScript(() => {
-    window.localStorage.setItem('everfreenote-theme', 'light');
+    window.localStorage.setItem('everfreenote-theme', 'dark');
   });
 };
 
