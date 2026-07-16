@@ -18,6 +18,7 @@ test.describe('settings accessibility audits', () => {
         body: a11y.format(),
         contentType: 'text/markdown',
       });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
 
     expect(
@@ -48,6 +49,7 @@ test.describe('settings accessibility audits', () => {
         body: a11y.format(),
         contentType: 'text/markdown',
       });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
 
     expect(
@@ -78,6 +80,7 @@ test.describe('settings accessibility audits', () => {
         body: a11y.format(),
         contentType: 'text/markdown',
       });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
 
     expect(
@@ -103,6 +106,7 @@ test.describe('settings accessibility audits', () => {
         body: a11y.format(),
         contentType: 'text/markdown',
       });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
 
     expect(

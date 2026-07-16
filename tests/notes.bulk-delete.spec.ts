@@ -36,6 +36,7 @@ test.describe('notes bulk delete', () => {
   });
 
   test('bulk delete selected notes', async ({
+    page,
     notesApi,
     leftPanel,
     bulkDeleteDialog,
@@ -67,6 +68,7 @@ test.describe('notes bulk delete', () => {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11y.hasViolations(),
@@ -95,6 +97,7 @@ test.describe('notes bulk delete', () => {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11y.hasViolations(),

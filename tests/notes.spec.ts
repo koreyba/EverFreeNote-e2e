@@ -17,6 +17,7 @@ test.describe('notes crud', () => {
         body: a11y.format(),
         contentType: 'text/markdown',
       });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
     expect(
       a11y.criticalViolations.length,
@@ -37,6 +38,7 @@ test.describe('notes crud', () => {
   });
 
   test('create, read, and delete a note', async ({
+    page,
     leftPanel,
     editView,
     readView,
@@ -64,6 +66,7 @@ test.describe('notes crud', () => {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11y.hasViolations(),
@@ -118,6 +121,7 @@ test.describe('notes crud', () => {
           body: a11yRead.format(),
           contentType: 'text/markdown',
         });
+        await a11yRead.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yRead.hasViolations(),
@@ -140,6 +144,7 @@ test.describe('notes crud', () => {
           body: a11yDelete.format(),
           contentType: 'text/markdown',
         });
+        await a11yDelete.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yDelete.hasViolations(),

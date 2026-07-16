@@ -85,6 +85,7 @@ test.describe('notes export/import', () => {
           body: a11ySettings.format(),
           contentType: 'text/markdown',
         });
+        await a11ySettings.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11ySettings.hasViolations(),
@@ -130,6 +131,7 @@ test.describe('notes export/import', () => {
           body: a11yExportDialog.format(),
           contentType: 'text/markdown',
         });
+        await a11yExportDialog.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yExportDialog.hasViolations(),
@@ -181,6 +183,7 @@ test.describe('notes export/import', () => {
           body: a11yExportCompleted.format(),
           contentType: 'text/markdown',
         });
+        await a11yExportCompleted.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yExportCompleted.hasViolations(),
@@ -258,6 +261,7 @@ test.describe('notes export/import', () => {
           body: a11yImportTab.format(),
           contentType: 'text/markdown',
         });
+        await a11yImportTab.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yImportTab.hasViolations(),
@@ -287,6 +291,7 @@ test.describe('notes export/import', () => {
           body: a11yImportDialog.format(),
           contentType: 'text/markdown',
         });
+        await a11yImportDialog.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yImportDialog.hasViolations(),
@@ -339,6 +344,7 @@ test.describe('notes export/import', () => {
           body: a11yImportCompleted.format(),
           contentType: 'text/markdown',
         });
+        await a11yImportCompleted.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yImportCompleted.hasViolations(),

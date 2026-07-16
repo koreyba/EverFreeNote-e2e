@@ -70,6 +70,7 @@ test.describe('notes search', () => {
   });
 
   test('long query search shows full-text results and supports tag filtering', async ({
+    page,
     leftPanel,
     readView,
     analyzeA11y,
@@ -98,6 +99,7 @@ test.describe('notes search', () => {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11y.hasViolations(),

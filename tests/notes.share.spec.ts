@@ -41,6 +41,7 @@ test.describe('notes sharing', () => {
   });
 
   test('shared note opens for signed-out visitors', async ({
+    page,
     guestPage,
     leftPanel,
     readView,
@@ -91,6 +92,7 @@ test.describe('notes sharing', () => {
           body: a11y.format(),
           contentType: 'text/markdown',
         });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11y.hasViolations(),
@@ -126,6 +128,7 @@ test.describe('notes sharing', () => {
           body: a11yShareDialog.format(),
           contentType: 'text/markdown',
         });
+        await a11yShareDialog.captureViolationScreenshots(page, testInfo);
       }
       expect.soft(
         a11yShareDialog.hasViolations(),
@@ -188,6 +191,7 @@ test.describe('notes sharing', () => {
           body: a11yPublicNote.format(),
           contentType: 'text/markdown',
         });
+        await a11yPublicNote.captureViolationScreenshots(guestPage, testInfo);
       }
       expect.soft(
         a11yPublicNote.hasViolations(),
