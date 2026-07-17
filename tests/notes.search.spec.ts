@@ -1,6 +1,7 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import type { Note } from '../test-api/notes.types';
 
+
 const FULL_TEXT_QUERY_PREFIX = 'ftsq';
 
 let createdNoteIds: string[] = [];
@@ -69,9 +70,12 @@ test.describe('notes search', () => {
   });
 
   test('long query search shows full-text results and supports tag filtering', async ({
+    page,
     leftPanel,
     readView,
-  }) => {
+    analyzeA11y,
+  }, testInfo) => {
+
     await test.step('perform full-text search', async () => {
       // Start with long-query mode (> 3 characters).
       await leftPanel.searchControls.openGlobalSearch();
@@ -86,6 +90,24 @@ test.describe('notes search', () => {
         leftPanel.fullTextSearchResults.foundNotesText,
         'Full-text results should report two found notes before tag filtering',
       ).toHaveText('Found: 2 notes');
+    });
+
+    await test.step('Accessibility scan: Search Panel', async () => {
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-search-panel.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+        await a11y.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Search Panel" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('verify search results content', async () => {
       await expect(
         leftPanel.fullTextSearchResults.searchDurationText,
         'Search duration should be shown in milliseconds',
@@ -179,5 +201,6 @@ test.describe('notes search', () => {
         'Reading view should show body text from the opened full-text result note',
       ).toContainText(noteMatchedWithTagBodyText);
     });
+
   });
 });

@@ -1,5 +1,6 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 
+
 let createdNoteId = '';
 let noteTitle = '';
 let noteBodyText = '';
@@ -40,13 +41,15 @@ test.describe('notes sharing', () => {
   });
 
   test('shared note opens for signed-out visitors', async ({
+    page,
     guestPage,
     leftPanel,
     readView,
     shareNoteDialog,
     guestLandingView,
     guestPublicNoteView,
-  }) => {
+    analyzeA11y,
+  }, testInfo) => {
     let publicLink = '';
 
     await test.step('open note created through API', async () => {
@@ -74,8 +77,31 @@ test.describe('notes sharing', () => {
       }
     });
 
+    await test.step('open more actions menu', async () => {
+      await readView.moreActionsButton.click();
+      await expect(
+        readView.shareNoteMenuItem,
+        'Share note menu item should be visible after clicking more actions',
+      ).toBeVisible();
+    });
+
+    await test.step('Accessibility scan: More Actions Menu', async () => {
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-more-actions-menu.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+        await a11y.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "More Actions Menu" should have no violations',
+      ).toBe(false);
+    });
+
     await test.step('create public share link', async () => {
-      await readView.openShareDialog();
+      await readView.shareNoteMenuItem.click();
 
       await expect(
         shareNoteDialog.dialog,
@@ -93,7 +119,24 @@ test.describe('notes sharing', () => {
         shareNoteDialog.copyLinkButton,
         'Copy share link button should become enabled after link generation',
       ).toBeEnabled();
+    });
 
+    await test.step('Accessibility scan: Share Dialog', async () => {
+      const a11yShareDialog = await analyzeA11y();
+      if (a11yShareDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-share-dialog.md', {
+          body: a11yShareDialog.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yShareDialog.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yShareDialog.hasViolations(),
+        'Accessibility scan on "Share Dialog" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('get public link', async () => {
       publicLink = await shareNoteDialog.getPublicLink();
       expect(publicLink, 'Generated public link should target the share page').toContain('/share/');
     });
@@ -139,7 +182,24 @@ test.describe('notes sharing', () => {
         guestPublicNoteView.noteContent,
         'Public note page should display the expected body excerpt',
       ).toContainText(noteBodyExcerpt);
+    });
 
+    await test.step('Accessibility scan: Public Shared Note View', async () => {
+      const a11yPublicNote = await analyzeA11y({ page: guestPage });
+      if (a11yPublicNote.hasViolations()) {
+        await testInfo.attach('a11y-report-public-note.md', {
+          body: a11yPublicNote.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yPublicNote.captureViolationScreenshots(guestPage, testInfo);
+      }
+      expect.soft(
+        a11yPublicNote.hasViolations(),
+        'Accessibility scan on "Public Shared Note View" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('verify tags on shared page', async () => {
       for (const tag of noteTags) {
         await expect(
           guestPublicNoteView.getTagBadge(tag),
@@ -147,5 +207,6 @@ test.describe('notes sharing', () => {
         ).toBeVisible();
       }
     });
+
   });
 });

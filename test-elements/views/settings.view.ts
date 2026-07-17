@@ -9,6 +9,9 @@ export class SettingsView {
   readonly backButton: Locator;
   readonly closeButton: Locator;
   readonly tabHeading: Locator;
+  readonly saveSettingsButton: Locator;
+  readonly saveApiKeyButton: Locator;
+  readonly aiIndexSearchInput: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -16,6 +19,9 @@ export class SettingsView {
     this.backButton = page.getByRole('button', { name: 'Back' });
     this.closeButton = page.getByRole('button', { name: 'Close settings' });
     this.tabHeading = page.locator('section h2').first();
+    this.saveSettingsButton = page.getByRole('button', { name: 'Save settings' });
+    this.saveApiKeyButton = page.getByRole('button', { name: 'Save API key' });
+    this.aiIndexSearchInput = page.getByPlaceholder('Search notes...');
   }
 
   getSidebarTab(label: string) {

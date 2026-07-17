@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
+import type { Download } from '@playwright/test';
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import {
   createNotesViaApi,
   deleteNotesWithGivenTitleIfFound,
 } from '../test-api/flows/notes.api.flow';
 import type { Note } from '../test-api/notes.types';
+
 
 const NOTES_TO_CREATE = 3;
 const SETTINGS_ROUTE_PATTERN = /\/settings\/?(?:\?tab=[\w-]+)?$/;
@@ -56,12 +58,14 @@ test.describe('notes export/import', () => {
     exportCompletedDialog,
     importCompletedDialog,
     importNotesDialog,
+    analyzeA11y,
   }, testInfo) => {
     test.slow();
     let downloadedFilePath: string;
+    let download: Download;
 
-    await test.step('export notes', async () => {
-      // Open settings route, switch to export tab, and select only notes created in this test run.
+    await test.step('open settings', async () => {
+      // Open settings route, switch to export tab.
       await leftPanel.accountMenu.openSettings();
       await expect(
         settingsView.heading,
@@ -71,7 +75,25 @@ test.describe('notes export/import', () => {
         page,
         'Opening settings from the sidebar footer should navigate to the dedicated /settings route',
       ).toHaveURL(SETTINGS_ROUTE_PATTERN);
+    });
 
+    await test.step('Accessibility scan: Settings Page', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      const a11ySettings = await analyzeA11y();
+      if (a11ySettings.hasViolations()) {
+        await testInfo.attach('a11y-report-settings.md', {
+          body: a11ySettings.format(),
+          contentType: 'text/markdown',
+        });
+        await a11ySettings.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11ySettings.hasViolations(),
+        'Accessibility scan on "Settings Page" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('open export notes dialog', async () => {
       await settingsView.openTab('Export .enex file');
       await expect(
         settingsView.tabHeading,
@@ -95,7 +117,29 @@ test.describe('notes export/import', () => {
         exportNotesDialog.searchInput,
         'Export notes dialog should expose the notes search field on the new settings flow',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Export Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      await expect(
+        page.getByRole('button', { name: 'Select all' }),
+        'Select all button should be enabled after loading notes',
+      ).toBeEnabled();
+      const a11yExportDialog = await analyzeA11y();
+      if (a11yExportDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-export-dialog.md', {
+          body: a11yExportDialog.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yExportDialog.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yExportDialog.hasViolations(),
+        'Accessibility scan on "Export Notes Dialog" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('trigger export notes download', async () => {
       for (const title of createdNoteTitles) {
         await exportNotesDialog.checkNoteByTitle(title);
         await expect(
@@ -112,7 +156,7 @@ test.describe('notes export/import', () => {
       // Export selected notes and persist downloaded ENEX into the test output folder.
       const downloadPromise = page.waitForEvent('download');
       await exportNotesDialog.clickExport();
-      const download = await downloadPromise;
+      download = await downloadPromise;
 
       expect(
         await download.failure(),
@@ -130,7 +174,24 @@ test.describe('notes export/import', () => {
         exportCompletedDialog.readyMessage,
         'Export completed dialog should show ready message',
       ).toBeVisible();
+    });
 
+    await test.step('Accessibility scan: Export Completed Dialog', async () => {
+      const a11yExportCompleted = await analyzeA11y();
+      if (a11yExportCompleted.hasViolations()) {
+        await testInfo.attach('a11y-report-export-completed.md', {
+          body: a11yExportCompleted.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yExportCompleted.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yExportCompleted.hasViolations(),
+        'Accessibility scan on "Export Completed Dialog" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('save export download and close dialog', async () => {
       downloadedFilePath = testInfo.outputPath(download.suggestedFilename());
       await download.saveAs(downloadedFilePath);
       expect(
@@ -174,7 +235,7 @@ test.describe('notes export/import', () => {
       }
     });
 
-    await test.step('import notes', async () => {
+    await test.step('open import tab', async () => {
       // Import the same exported file using the "Skip duplicate notes" strategy.
       await leftPanel.accountMenu.openSettings();
       await expect(
@@ -190,6 +251,25 @@ test.describe('notes export/import', () => {
         settingsView.getPrimaryActionButton('Import .enex file'),
         'Import tab should expose the primary import action button',
       ).toBeVisible();
+    });
+
+    await test.step('Accessibility scan: Import Tab', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      const a11yImportTab = await analyzeA11y();
+      if (a11yImportTab.hasViolations()) {
+        await testInfo.attach('a11y-report-import-tab.md', {
+          body: a11yImportTab.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportTab.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yImportTab.hasViolations(),
+        'Accessibility scan on "Import Tab" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('open import notes dialog', async () => {
       await settingsView.getPrimaryActionButton('Import .enex file').click();
 
       // Ensure import dialog is opened before interacting with import controls.
@@ -201,6 +281,25 @@ test.describe('notes export/import', () => {
         importNotesDialog.titleHeading,
         'Import notes dialog title should be visible',
       ).toBeVisible();
+    });
+
+    await test.step('Accessibility scan: Import Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      const a11yImportDialog = await analyzeA11y();
+      if (a11yImportDialog.hasViolations()) {
+        await testInfo.attach('a11y-report-import-dialog.md', {
+          body: a11yImportDialog.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportDialog.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yImportDialog.hasViolations(),
+        'Accessibility scan on "Import Notes Dialog" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('trigger import notes', async () => {
       // Use "Skip duplicate notes" strategy explicitly to keep import behavior deterministic.
       await importNotesDialog.selectSkipDuplicates();
       await expect(
@@ -235,6 +334,25 @@ test.describe('notes export/import', () => {
         importCompletedDialog.readyMessage,
         'Import completed dialog should show ready message',
       ).toBeVisible();
+    });
+
+    await test.step('Accessibility scan: Import Completed Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      const a11yImportCompleted = await analyzeA11y();
+      if (a11yImportCompleted.hasViolations()) {
+        await testInfo.attach('a11y-report-import-completed.md', {
+          body: a11yImportCompleted.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportCompleted.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11yImportCompleted.hasViolations(),
+        'Accessibility scan on "Import Completed Dialog" should have no violations',
+      ).toBe(false);
+    });
+
+    await test.step('close import completion dialog', async () => {
       await expect(
         importCompletedDialog.successfulCountText,
         'Import completed dialog should report the expected number of imported notes',
@@ -284,6 +402,7 @@ test.describe('notes export/import', () => {
         ).toBeVisible();
       }
     });
+
   });
 });
 

@@ -12,7 +12,7 @@ export class NoteCard {
 
   constructor(root: Locator) {
     this.root = root;
-    this.titleHeading = root.getByRole('heading', { level: 3 });
+    this.titleHeading = root.getByRole('heading', { level: 2 });
     this.bodyParagraph = root.locator('p').first();
     this.dateParagraph = root.locator('p').nth(1);
     this.checkbox = root.getByRole('checkbox', { includeHidden: true });
