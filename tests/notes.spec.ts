@@ -1,6 +1,7 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { deleteNotesWithGivenTitleIfFound } from '../test-api/flows/notes.api.flow';
 
+
 let createdNoteTitle = '';
 let shouldCleanupCreatedNote = true;
 
@@ -9,12 +10,19 @@ test.describe('notes crud', () => {
     shouldCleanupCreatedNote = true;
     createdNoteTitle = '';
     await page.goto('/');
-    
+
     const a11y = await analyzeA11y();
     if (a11y.hasViolations()) {
-      await testInfo.attach('a11y-report-landing.md', { body: a11y.format(), contentType: 'text/markdown' });
+      await testInfo.attach('a11y-report-landing.md', {
+        body: a11y.format(),
+        contentType: 'text/markdown',
+      });
+      await a11y.captureViolationScreenshots(page, testInfo);
     }
-    expect(a11y.criticalViolations.length, 'Landing page should have 0 critical a11y violations').toBe(0);
+    expect(
+      a11y.criticalViolations.length,
+      'Landing page should have 0 critical a11y violations',
+    ).toBe(0);
   });
 
   test.afterEach(async ({ notesApi }) => {
@@ -30,6 +38,7 @@ test.describe('notes crud', () => {
   });
 
   test('create, read, and delete a note', async ({
+    page,
     leftPanel,
     editView,
     readView,
@@ -39,12 +48,11 @@ test.describe('notes crud', () => {
     const timestamp = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
     createdNoteTitle = `Created by Playwright ${timestamp}`;
     const noteBodyText = `Text body ${timestamp}`;
-    const a11yScans: { context: string; report: any }[] = [];
- 
+
     await test.step('fill in new note details', async () => {
       await leftPanel.clickNewNote();
       await editView.fillNote(createdNoteTitle, noteBodyText);
- 
+
       await expect(
         editView.tiptapEditor,
         'Editor should contain entered note body text before save',
@@ -54,9 +62,16 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Editor View', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-edit.md', { body: a11y.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-edit.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Editor View', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Editor View" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('save the note', async () => {
@@ -102,9 +117,16 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Read View', async () => {
       const a11yRead = await analyzeA11y();
       if (a11yRead.hasViolations()) {
-        await testInfo.attach('a11y-report-read.md', { body: a11yRead.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-read.md', {
+          body: a11yRead.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yRead.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Read View', report: a11yRead });
+      expect.soft(
+        a11yRead.hasViolations(),
+        'Accessibility scan on "Read View" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open delete dialog', async () => {
@@ -118,9 +140,16 @@ test.describe('notes crud', () => {
     await test.step('Accessibility scan: Delete Dialog', async () => {
       const a11yDelete = await analyzeA11y();
       if (a11yDelete.hasViolations()) {
-        await testInfo.attach('a11y-report-delete.md', { body: a11yDelete.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-delete.md', {
+          body: a11yDelete.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yDelete.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Delete Dialog', report: a11yDelete });
+      expect.soft(
+        a11yDelete.hasViolations(),
+        'Accessibility scan on "Delete Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('confirm note deletion', async () => {
@@ -133,15 +162,6 @@ test.describe('notes crud', () => {
       const deletedNote = leftPanel.getNoteCardByTitle(createdNoteTitle);
       await expect(deletedNote.root, 'Deleted note was found when not expected').toHaveCount(0);
       shouldCleanupCreatedNote = false;
-    });
-
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        expect(
-          scan.report.criticalViolations.length,
-          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
-        ).toBe(0);
-      }
     });
   });
 });

@@ -1,6 +1,7 @@
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import { createNotesViaApi } from '../test-api/flows/notes.api.flow';
 
+
 const NOTES_TO_CREATE = 3;
 
 let createdNoteIds: string[] = [];
@@ -34,11 +35,13 @@ test.describe('notes bulk delete', () => {
     }
   });
 
-  test('bulk delete selected notes', async (
-    { notesApi, leftPanel, bulkDeleteDialog, analyzeA11y },
-    testInfo,
-  ) => {
-    const a11yScans: { context: string; report: any }[] = [];
+  test('bulk delete selected notes', async ({
+    page,
+    notesApi,
+    leftPanel,
+    bulkDeleteDialog,
+    analyzeA11y,
+  }, testInfo) => {
 
     await test.step('select notes to delete', async () => {
       for (const title of createdNoteTitles) {
@@ -58,6 +61,21 @@ test.describe('notes bulk delete', () => {
       }
     });
 
+    await test.step('Accessibility scan: Selection Mode', async () => {
+      const a11y = await analyzeA11y();
+      if (a11y.hasViolations()) {
+        await testInfo.attach('a11y-report-selection-mode.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+        await a11y.captureViolationScreenshots(page, testInfo);
+      }
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Selection Mode" should have no violations',
+      ).toBe(false);
+    });
+
     await test.step('delete selected notes', async () => {
       await expect(
         leftPanel.deleteSelectedButton,
@@ -75,9 +93,16 @@ test.describe('notes bulk delete', () => {
     await test.step('Accessibility scan: Bulk Delete Dialog', async () => {
       const a11y = await analyzeA11y();
       if (a11y.hasViolations()) {
-        await testInfo.attach('a11y-report-bulk-delete.md', { body: a11y.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-bulk-delete.md', {
+          body: a11y.format(),
+          contentType: 'text/markdown',
+        });
+        await a11y.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Bulk Delete Dialog', report: a11y });
+      expect.soft(
+        a11y.hasViolations(),
+        'Accessibility scan on "Bulk Delete Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('confirm bulk deletion', async () => {
@@ -105,15 +130,7 @@ test.describe('notes bulk delete', () => {
         const fetched = await notesApi.getNotes({ id: noteId });
         expect(fetched.status, `Note with ID ${noteId} should be deleted, but it's not`).toBe(404);
       }
-    });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        expect(
-          scan.report.criticalViolations.length,
-          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
-        ).toBe(0);
-      }
       needAPINotesCleanup = false;
     });
   });

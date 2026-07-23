@@ -10,3 +10,5 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 /.env
+
+/a11y-reports/

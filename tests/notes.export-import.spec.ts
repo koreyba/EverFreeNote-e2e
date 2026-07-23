@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
+import type { Download } from '@playwright/test';
 import { expect, test } from '../test-elements/fixtures/page-objects.fixture';
 import {
   createNotesViaApi,
   deleteNotesWithGivenTitleIfFound,
 } from '../test-api/flows/notes.api.flow';
 import type { Note } from '../test-api/notes.types';
+
 
 const NOTES_TO_CREATE = 3;
 const SETTINGS_ROUTE_PATTERN = /\/settings\/?(?:\?tab=[\w-]+)?$/;
@@ -60,8 +62,7 @@ test.describe('notes export/import', () => {
   }, testInfo) => {
     test.slow();
     let downloadedFilePath: string;
-    let download: any;
-    const a11yScans: { context: string; report: any }[] = [];
+    let download: Download;
 
     await test.step('open settings', async () => {
       // Open settings route, switch to export tab.
@@ -77,11 +78,19 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Settings Page', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11ySettings = await analyzeA11y();
       if (a11ySettings.hasViolations()) {
-        await testInfo.attach('a11y-report-settings.md', { body: a11ySettings.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-settings.md', {
+          body: a11ySettings.format(),
+          contentType: 'text/markdown',
+        });
+        await a11ySettings.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Settings Page', report: a11ySettings });
+      expect.soft(
+        a11ySettings.hasViolations(),
+        'Accessibility scan on "Settings Page" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open export notes dialog', async () => {
@@ -111,11 +120,23 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Export Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
+      await expect(
+        page.getByRole('button', { name: 'Select all' }),
+        'Select all button should be enabled after loading notes',
+      ).toBeEnabled();
       const a11yExportDialog = await analyzeA11y();
       if (a11yExportDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-export-dialog.md', { body: a11yExportDialog.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-export-dialog.md', {
+          body: a11yExportDialog.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yExportDialog.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Export Notes Dialog', report: a11yExportDialog });
+      expect.soft(
+        a11yExportDialog.hasViolations(),
+        'Accessibility scan on "Export Notes Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('trigger export notes download', async () => {
@@ -158,9 +179,16 @@ test.describe('notes export/import', () => {
     await test.step('Accessibility scan: Export Completed Dialog', async () => {
       const a11yExportCompleted = await analyzeA11y();
       if (a11yExportCompleted.hasViolations()) {
-        await testInfo.attach('a11y-report-export-completed.md', { body: a11yExportCompleted.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-export-completed.md', {
+          body: a11yExportCompleted.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yExportCompleted.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Export Completed Dialog', report: a11yExportCompleted });
+      expect.soft(
+        a11yExportCompleted.hasViolations(),
+        'Accessibility scan on "Export Completed Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('save export download and close dialog', async () => {
@@ -226,11 +254,19 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Tab', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportTab = await analyzeA11y();
       if (a11yImportTab.hasViolations()) {
-        await testInfo.attach('a11y-report-import-tab.md', { body: a11yImportTab.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-import-tab.md', {
+          body: a11yImportTab.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportTab.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Import Tab', report: a11yImportTab });
+      expect.soft(
+        a11yImportTab.hasViolations(),
+        'Accessibility scan on "Import Tab" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('open import notes dialog', async () => {
@@ -248,11 +284,19 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportDialog = await analyzeA11y();
       if (a11yImportDialog.hasViolations()) {
-        await testInfo.attach('a11y-report-import-dialog.md', { body: a11yImportDialog.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-import-dialog.md', {
+          body: a11yImportDialog.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportDialog.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Import Notes Dialog', report: a11yImportDialog });
+      expect.soft(
+        a11yImportDialog.hasViolations(),
+        'Accessibility scan on "Import Notes Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('trigger import notes', async () => {
@@ -293,11 +337,19 @@ test.describe('notes export/import', () => {
     });
 
     await test.step('Accessibility scan: Import Completed Dialog', async () => {
+      await expect(page).toHaveTitle(/EverFreeNote/);
       const a11yImportCompleted = await analyzeA11y();
       if (a11yImportCompleted.hasViolations()) {
-        await testInfo.attach('a11y-report-import-completed.md', { body: a11yImportCompleted.format(), contentType: 'text/markdown' });
+        await testInfo.attach('a11y-report-import-completed.md', {
+          body: a11yImportCompleted.format(),
+          contentType: 'text/markdown',
+        });
+        await a11yImportCompleted.captureViolationScreenshots(page, testInfo);
       }
-      a11yScans.push({ context: 'Import Completed Dialog', report: a11yImportCompleted });
+      expect.soft(
+        a11yImportCompleted.hasViolations(),
+        'Accessibility scan on "Import Completed Dialog" should have no violations',
+      ).toBe(false);
     });
 
     await test.step('close import completion dialog', async () => {
@@ -351,14 +403,6 @@ test.describe('notes export/import', () => {
       }
     });
 
-    await test.step('Verify accessibility compliance', async () => {
-      for (const scan of a11yScans) {
-        expect(
-          scan.report.criticalViolations.length,
-          `Accessibility scan on "${scan.context}" should have 0 critical violations`,
-        ).toBe(0);
-      }
-    });
   });
 });
 
