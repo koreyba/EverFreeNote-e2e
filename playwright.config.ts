@@ -27,6 +27,16 @@ export default defineConfig({
     ['json', { outputFile: 'results.json' }],
     ['allure-playwright', { resultsDir: 'allure-results/e2e' }],
   ],
+  /*
+   * Assertions that wait on a backend round-trip need more than Playwright's
+   * 5s default. The suite runs against a Cloudflare preview backed by a
+   * free-tier Supabase project, where an Edge Function and Postgres can both
+   * cold-start; settings screens and bulk deletes have timed out at 5s while
+   * the application itself was healthy. Assertions retry, so a higher ceiling
+   * costs nothing on a fast run.
+   */
+  expect: { timeout: 15_000 },
+
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
