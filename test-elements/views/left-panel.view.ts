@@ -23,7 +23,7 @@ export class LeftPanel {
   constructor(page: Page) {
     this.page = page;
     this.newNoteButton = page.getByRole('button', { name: 'New Note' });
-    this.selectNotesButton = page.getByRole('button', { name: /Select Notes/i });
+    this.selectNotesButton = page.getByRole('button', { name: /^Select(?: Notes)?$/i });
     this.exitSelectionButton = page.getByTestId('selection-mode-cancel');
     this.selectedNotesCounter = page.getByTestId('selection-mode-count');
     this.deleteSelectedButton = page.getByTestId('selection-mode-delete');

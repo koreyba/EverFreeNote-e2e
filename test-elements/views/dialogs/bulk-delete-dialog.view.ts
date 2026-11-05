@@ -12,7 +12,9 @@ export class BulkDeleteDialog {
 
   constructor(page: Page) {
     this.dialog = page.getByTestId('bulk-delete-dialog');
-    this.titleHeading = this.dialog.getByRole('heading', { name: 'Delete selected notes' });
+    this.titleHeading = this.dialog.getByRole('heading', {
+      name: /^(Delete selected notes|Move selected notes to Trash)$/i,
+    });
     this.confirmationInput = page.getByTestId('bulk-delete-confirm-input');
     this.confirmButton = page.getByTestId('bulk-delete-confirm');
     this.cancelButton = page.getByTestId('bulk-delete-cancel');

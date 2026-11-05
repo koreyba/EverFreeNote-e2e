@@ -78,9 +78,13 @@ test.describe('notes bulk delete', () => {
 
     await test.step('delete selected notes', async () => {
       await expect(
+        leftPanel.selectedNotesCounter,
+        `Selection should contain ${NOTES_TO_CREATE} notes`,
+      ).toHaveText(new RegExp(`^${NOTES_TO_CREATE}( selected)?$`));
+      await expect(
         leftPanel.deleteSelectedButton,
-        `"Delete" action should show ${NOTES_TO_CREATE} selected notes`,
-      ).toHaveText(`Delete (${NOTES_TO_CREATE})`);
+        'The bulk action should be enabled with notes selected',
+      ).toBeEnabled();
       await leftPanel.clickDeleteSelected();
 
       await expect(bulkDeleteDialog.dialog, 'Bulk delete dialog should be visible').toBeVisible();
@@ -106,6 +110,11 @@ test.describe('notes bulk delete', () => {
     });
 
     await test.step('confirm bulk deletion', async () => {
+      await bulkDeleteDialog.fillCount(NOTES_TO_CREATE - 1);
+      await expect(
+        bulkDeleteDialog.confirmButton,
+        'Confirm should stay disabled when the count differs from the selection',
+      ).toBeDisabled();
       await bulkDeleteDialog.fillCount(NOTES_TO_CREATE);
       await expect(
         bulkDeleteDialog.confirmButton,
