@@ -169,6 +169,16 @@ export const analyzeAccessibility = async (
   page: Page,
   options: AxeScanOptions,
 ): Promise<A11yReport> => {
+  // A visible menu or dialog can still be fading in. Audit its settled colors.
+  await page.waitForFunction(
+    () => document.getAnimations().every((animation) =>
+      animation.playState !== 'running' ||
+      !Number.isFinite(animation.effect?.getComputedTiming().endTime),
+    ),
+    undefined,
+    { timeout: 2500 },
+  );
+
   let builder = new AxeBuilder({ page }).setLegacyMode(true);
 
   if (options.tags && options.tags.length > 0) {
